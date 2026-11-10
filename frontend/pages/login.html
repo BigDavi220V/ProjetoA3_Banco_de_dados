@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar · Caderneta Digital da Criança</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+  <main class="login">
+    <section class="login-arte">
+      <span class="anel" style="width:520px;height:520px;right:-180px;top:-160px"></span>
+      <span class="anel" style="width:320px;height:320px;right:-60px;bottom:-120px"></span>
+      <div class="marca" style="padding:0"><span class="marca-icone">CD</span><span><b>Caderneta Digital</b><span>da Criança · Rede Municipal de Saúde</span></span></div>
+      <div>
+        <h1>O registro do bebê sem papel e sem retrabalho.</h1>
+        <p>Pré-natal, parto, nascimento, alta, triagens neonatais e consulta da 1ª semana, num fluxo pensado para quem cuida enquanto registra.</p>
+        <ul>
+          <li>Sim/Não com um toque e campos que só aparecem quando precisam</li>
+          <li>Rascunho guardado no aparelho se a conexão cair</li>
+          <li>Alertas automáticos: baixo peso, prematuridade, Apgar, triagens atrasadas</li>
+        </ul>
+      </div>
+      <small style="color:#8fb8a7">Projeto A3 · Banco de Dados · UNIFACS — dados fictícios</small>
+    </section>
+
+    <section class="login-form">
+      <form id="form-login" novalidate>
+        <div>
+          <h2 style="font-size:1.4rem">Entrar</h2>
+          <p class="muted" style="margin:6px 0 0">Use seu e-mail institucional.</p>
+        </div>
+        <div class="campo">
+          <label for="login">Usuário</label>
+          <input id="login" name="login" type="email" autocomplete="username" required placeholder="nome@caderneta.local">
+        </div>
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        </div>
+        <div id="erro" class="aviso alerta" hidden></div>
+        <button class="btn btn-primario" type="submit" id="btn-entrar">Entrar</button>
+
+        <div>
+          <p class="rotulo" style="margin:8px 0">Usuários de demonstração (senha <code>caderneta123</code>)</p>
+          <div class="demo-usuarios">
+            <button type="button" data-login="recepcao@caderneta.local">Recepção</button>
+            <button type="button" data-login="enfermeira@caderneta.local">Enfermeira</button>
+            <button type="button" data-login="tecnica@caderneta.local">Técnica</button>
+            <button type="button" data-login="medico@caderneta.local">Médica</button>
+            <button type="button" data-login="gestor@caderneta.local">Gestão</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    if (Sessao.token) location.href = 'inicio.html';
+
+    document.querySelectorAll('[data-login]').forEach(b => b.addEventListener('click', () => {
+      $('#login').value = b.dataset.login;
+      $('#senha').value = 'caderneta123';
+      $('#btn-entrar').focus();
+    }));
+
+    $('#form-login').addEventListener('submit', async e => {
+      e.preventDefault();
+      const erro = $('#erro');
+      erro.hidden = true;
+      const btn = $('#btn-entrar');
+      btn.disabled = true; btn.textContent = 'Entrando...';
+      try {
+        const r = await api('/auth/login', { method: 'POST', body: { login: $('#login').value, senha: $('#senha').value } });
+        Sessao.salvar(r.token, r.usuario);
+        location.href = 'inicio.html';
+      } catch (err) {
+        erro.textContent = err.message;
+        erro.hidden = false;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Entrar';
+      }
+    });
+  </script>
+</body>
+</html>

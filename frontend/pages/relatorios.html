@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relatórios · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <style>
+    .rel-layout { display: grid; grid-template-columns: 290px 1fr; gap: 16px; align-items: start; }
+    .rel-lista button { display: block; width: 100%; text-align: left; border: none; background: none; padding: 12px 16px; border-bottom: 1px solid var(--linha-2); cursor: pointer; }
+    .rel-lista button:hover { background: var(--verde-50); }
+    .rel-lista button[aria-current="true"] { background: var(--verde-100); }
+    .rel-lista small { display: block; color: var(--tinta-3); }
+    @media (max-width: 980px) { .rel-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <div class="topo">
+      <div><h1>Relatórios</h1><p>Indicadores da rede. Cada relatório mostra o SQL que o gerou.</p></div>
+    </div>
+
+    <div class="rel-layout">
+      <nav class="card rel-lista" id="menu-rel" aria-label="Relatórios"></nav>
+
+      <div>
+        <section class="card">
+          <div class="card-cab">
+            <div><h2 id="rel-titulo">Selecione um relatório</h2><small id="rel-pergunta" class="muted"></small></div>
+            <button class="btn btn-sm" id="btn-sql" hidden>Ver SQL</button>
+          </div>
+          <form class="filtros" id="periodo" hidden>
+            <div class="campo"><label for="p-ini">De</label><input id="p-ini" name="inicio" type="date"></div>
+            <div class="campo"><label for="p-fim">Até</label><input id="p-fim" name="fim" type="date"></div>
+            <button class="btn btn-primario" type="submit">Atualizar</button>
+          </form>
+          <div class="card-corpo" id="bloco-sql" hidden><small class="muted" id="rel-arquivo"></small><pre class="sql" id="rel-sql"></pre></div>
+          <div class="tabela-wrap"><table class="tabela" id="rel-tabela"></table></div>
+        </section>
+
+        <section class="card">
+          <div class="card-cab"><div><h2>Auditoria</h2><small class="muted">Gravada pelos triggers do banco (antes e depois em JSON)</small></div>
+            <select id="aud-tabela" style="width:auto">
+              <option value="">Todas as tabelas</option>
+              <option value="atendimento.agendamento">Agendamentos</option>
+              <option value="atendimento.consulta">Consultas</option>
+              <option value="cadastro.crianca">Crianças</option>
+              <option value="clinico.nascimento">Nascimentos</option>
+            </select></div>
+          <div class="tabela-wrap"><table class="tabela">
+            <thead><tr><th>Quando</th><th>Tabela</th><th>Operação</th><th>Registro</th><th>Usuário</th><th>Mudou</th></tr></thead>
+            <tbody id="aud-lista"></tbody></table></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/app.js"></script>
+<script>
+  let catalogo = [], atual = null;
+
+  if (montarLayout('relatorios')) iniciar();
+
+  async function iniciar() {
+    $('#p-ini').value = hojeISO(-90);
+    $('#p-fim').value = hojeISO();
+    try {
+      catalogo = await api('/relatorios');
+      $('#menu-rel').innerHTML = catalogo.map(r => `<button type="button" data-cod="${r.codigo}"><b>${esc(r.titulo)}</b><small>${esc(r.pergunta)}</small></button>`).join('');
+      $('#menu-rel').addEventListener('click', e => { const b = e.target.closest('[data-cod]'); if (b) abrir(b.dataset.cod); });
+      $('#periodo').addEventListener('submit', e => { e.preventDefault(); abrir(atual); });
+      $('#btn-sql').onclick = () => { const b = $('#bloco-sql'); b.hidden = !b.hidden; $('#btn-sql').textContent = b.hidden ? 'Ver SQL' : 'Ocultar SQL'; };
+      $('#aud-tabela').addEventListener('change', auditoria);
+      abrir(catalogo[0].codigo);
+      auditoria();
+    } catch (e) { erroNaTela(e); }
+  }
+
+  async function abrir(codigo) {
+    atual = codigo;
+    $$('#menu-rel [data-cod]').forEach(b => b.setAttribute('aria-current', String(b.dataset.cod === codigo)));
+    const meta = catalogo.find(r => r.codigo === codigo);
+    $('#rel-titulo').textContent = meta.titulo;
+    $('#rel-pergunta').textContent = meta.pergunta;
+    $('#periodo').hidden = !meta.usaPeriodo;
+    $('#btn-sql').hidden = false;
+    $('#rel-arquivo').textContent = `Também em database/${meta.arquivo}`;
+    $('#rel-sql').textContent = meta.sql;
+    $('#rel-tabela').innerHTML = '<tbody><tr><td class="carregando">Executando consulta...</td></tr></tbody>';
+    try {
+      const r = await api(`/relatorios/${codigo}?inicio=${$('#p-ini').value}&fim=${$('#p-fim').value}`);
+      if (!r.linhas.length) { $('#rel-tabela').innerHTML = '<tbody><tr><td class="vazio">Sem dados para o período.</td></tr></tbody>'; return; }
+      const cols = Object.keys(r.linhas[0]);
+      const numerica = c => r.linhas.every(l => l[c] === null || typeof l[c] === 'number');
+      $('#rel-tabela').innerHTML = `
+        <thead><tr>${cols.map(c => `<th class="${numerica(c) ? 'num' : ''}">${esc(c.replace(/_/g, ' '))}</th>`).join('')}</tr></thead>
+        <tbody>${r.linhas.map(l => `<tr>${cols.map(c => `<td class="${numerica(c) ? 'num' : ''}">${l[c] === null ? '—' : esc(typeof l[c] === 'number' ? l[c].toLocaleString('pt-BR') : l[c])}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    } catch (e) {
+      $('#rel-tabela').innerHTML = `<tbody><tr><td><div class="aviso alerta">${esc(e.message)}</div></td></tr></tbody>`;
+    }
+  }
+
+  async function auditoria() {
+    try {
+      const t = $('#aud-tabela').value;
+      const linhas = await api(`/auditoria?limite=40${t ? `&tabela=${encodeURIComponent(t)}` : ''}`);
+      const op = { I: ['ok', 'Inclusão'], U: ['info', 'Alteração'], D: ['alerta', 'Exclusão'] };
+      $('#aud-lista').innerHTML = linhas.length ? linhas.map(l => {
+        let mudou = '';
+        try {
+          const a = l.dados_antes ? JSON.parse(l.dados_antes) : {}, d = l.dados_depois ? JSON.parse(l.dados_depois) : {};
+          if (l.operacao === 'U') mudou = Object.keys(d).filter(k => JSON.stringify(a[k]) !== JSON.stringify(d[k])).map(k => `${k}: ${a[k] ?? '∅'} → ${d[k] ?? '∅'}`).join(' · ');
+          else if (l.operacao === 'I') mudou = d.status || d.nome || '';
+          else mudou = a.nome || a.status || '';
+        } catch { /* JSON inválido não deve acontecer (CHECK ISJSON) */ }
+        return `<tr><td>${dataHoraBR(l.data_hora)}</td><td><code>${esc(l.tabela)}</code></td>
+          <td><span class="tag ${op[l.operacao][0]}">${op[l.operacao][1]}</span></td><td>#${esc(l.chave)}</td>
+          <td>${esc(l.usuario)}</td><td><small>${esc(mudou)}</small></td></tr>`;
+      }).join('') : '<tr><td colspan="6" class="vazio">Sem registros.</td></tr>';
+    } catch (e) { erroNaTela(e); }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <div class="topo">
+      <div><h1>Agenda</h1><p id="titulo-dia"></p></div>
+      <div class="acoes">
+        <button class="btn" id="btn-ant" aria-label="Dia anterior">‹</button>
+        <button class="btn" id="btn-hoje">Hoje</button>
+        <button class="btn" id="btn-prox" aria-label="Próximo dia">›</button>
+        <button class="btn btn-primario" id="btn-novo" data-perm="agenda.gerenciar">+ Novo agendamento</button>
+      </div>
+    </div>
+
+    <section class="card">
+      <form class="filtros" id="filtros">
+        <div class="campo"><label for="f-data">Dia</label><input type="date" id="f-data" name="data"></div>
+        <div class="campo"><label for="f-unidade">Unidade</label><select id="f-unidade" name="unidade_id"></select></div>
+        <div class="campo cresce"><label for="f-prof">Profissional</label><select id="f-prof" name="profissional_id"></select></div>
+        <div class="campo"><label for="f-status">Situação</label>
+          <select id="f-status" name="status"><option value="">Todas</option><option value="AGENDADO">Agendado</option><option value="REALIZADO">Realizado</option><option value="FALTOU">Faltou</option><option value="CANCELADO">Cancelado</option></select></div>
+      </form>
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr><th>Hora</th><th>Criança</th><th>Atendimento</th><th>Profissional</th><th>Situação</th><th></th></tr></thead>
+          <tbody id="lista"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg-agendar">
+  <form id="form-agendar" method="dialog" novalidate>
+    <div class="card-cab"><h2>Novo agendamento</h2><button class="fechar" type="button" data-fechar aria-label="Fechar">×</button></div>
+    <div class="modal-corpo">
+      <div class="form-grid">
+        <div class="campo c-12 autocompletar">
+          <label class="obrig" for="busca-crianca">Criança</label>
+          <input id="busca-crianca" type="search" autocomplete="off" placeholder="Nome do bebê ou da mãe">
+          <div class="sugestoes" id="sug-crianca" hidden></div>
+          <div id="crianca-escolhida"></div>
+          <input type="hidden" name="crianca_id">
+        </div>
+        <div class="campo c-12"><span class="rotulo obrig">Tipo de atendimento</span><span id="seg-tipo"></span></div>
+        <div class="campo c-6"><label class="obrig" for="a-esp">Especialidade</label><select id="a-esp" name="especialidade_id"></select></div>
+        <div class="campo c-6"><label class="obrig" for="a-prof">Profissional</label><select id="a-prof" name="profissional_id"><option value="">Escolha a especialidade</option></select></div>
+        <div class="campo c-6"><label class="obrig" for="a-unid">Unidade</label><select id="a-unid" name="unidade_id"></select></div>
+        <div class="campo c-6"><span class="rotulo">Local</span><span id="seg-local"></span></div>
+        <div class="campo c-4"><label class="obrig" for="a-data">Data</label><input id="a-data" name="data" type="date"></div>
+        <div class="campo c-4"><label class="obrig" for="a-hora">Hora</label><input id="a-hora" name="hora" type="time" step="900"></div>
+        <div class="campo c-4"><label for="a-dur">Duração</label><select id="a-dur" name="duracao_min"><option>20</option><option selected>30</option><option>45</option><option>60</option></select></div>
+        <div class="campo c-12"><label for="a-obs">Observação</label><input id="a-obs" name="observacao" type="text" maxlength="200"></div>
+        <div class="c-12" id="dica-prazo"></div>
+      </div>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn" type="button" data-fechar>Cancelar</button>
+      <button class="btn btn-primario" type="submit">Agendar</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="../assets/js/app.js"></script>
+<script>
+  let DOM, PROFS = [], criancaSel = null;
+  const qs = new URLSearchParams(location.search);
+
+  if (montarLayout('agenda')) iniciar();
+
+  async function iniciar() {
+    $$('[data-perm]').forEach(el => { el.hidden = !Sessao.pode(el.dataset.perm); });
+    [DOM, PROFS] = await Promise.all([dominios(), api('/profissionais')]);
+    const u = Sessao.usuario;
+    $('#f-unidade').innerHTML = opcoes(DOM.unidades, 'unidade_id', 'nome', u.perfil === 'GESTOR' ? '' : u.unidade_id, 'Todas as unidades');
+    $('#f-prof').innerHTML = opcoes(PROFS.filter(p => p.especialidade_ids), 'profissional_id', 'nome', u.perfil === 'MEDICO' ? u.profissional_id : '', 'Todos');
+    $('#f-data').value = hojeISO();
+    $('#filtros').addEventListener('change', carregar);
+    $('#btn-hoje').onclick = () => { $('#f-data').value = hojeISO(); carregar(); };
+    $('#btn-ant').onclick = () => mudarDia(-1);
+    $('#btn-prox').onclick = () => mudarDia(1);
+    $('#btn-novo').onclick = () => abrirNovo();
+    carregar();
+    if (qs.get('crianca') && Sessao.pode('agenda.gerenciar')) {
+      const c = await api(`/criancas/${qs.get('crianca')}`);
+      abrirNovo({ crianca_id: c.crianca_id, titulo: c.nome, sub: `Mãe: ${c.mae_nome}`, idade: c.idade_dias, nasc: c.data_nascimento, unidade: c.unidade_id });
+    }
+  }
+
+  function mudarDia(n) {
+    const d = new Date(`${$('#f-data').value}T12:00:00`); d.setDate(d.getDate() + n);
+    $('#f-data').value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    carregar();
+  }
+
+  async function carregar() {
+    const f = lerForm($('#filtros'));
+    const data = f.data || hojeISO();
+    const d = new Date(`${data}T12:00:00`);
+    $('#titulo-dia').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    const params = new URLSearchParams(Object.entries(f).filter(([, v]) => v));
+    try {
+      const lista = await api(`/agendamentos?${params}`);
+      $('#lista').innerHTML = lista.length ? lista.map(linha).join('') : '<tr><td colspan="6" class="vazio">Nenhum atendimento neste dia.</td></tr>';
+    } catch (e) { erroNaTela(e); }
+  }
+
+  function linha(a) {
+    const aberto = a.status === 'AGENDADO';
+    const gerencia = Sessao.pode('agenda.gerenciar');
+    return `<tr>
+      <td class="hora">${horaBR(a.data_hora)}<br><small class="muted">${a.duracao_min} min</small></td>
+      <td><div class="pessoa"><b><a href="caderneta.html?id=${a.crianca_id}">${esc(a.crianca_nome)}</a></b><small>${idadeTexto(a.idade_dias_no_dia)} · mãe ${esc(a.mae_nome)}</small></div></td>
+      <td>${rotulo(a.tipo_atendimento)}<br><small class="muted">${esc(a.especialidade_nome)} · ${rotulo(a.local_atendimento)}${a.observacao ? ` · ${esc(a.observacao)}` : ''}</small></td>
+      <td>${esc(a.profissional_nome)}<br><small class="muted">${esc(a.unidade_nome)}</small></td>
+      <td>${tag(a.status)}${a.motivo_cancelamento ? `<br><small class="muted">${esc(a.motivo_cancelamento)}</small>` : ''}</td>
+      <td class="num"><div class="acoes" style="justify-content:flex-end">
+        ${aberto && Sessao.pode('consulta.registrar') ? `<a class="btn btn-sm btn-primario" href="caderneta.html?id=${a.crianca_id}#consultas">Atender</a>` : ''}
+        ${aberto && (gerencia || Sessao.pode('consulta.registrar')) ? `<button class="btn btn-sm" onclick="faltou(${a.agendamento_id})">Faltou</button>` : ''}
+        ${aberto && gerencia ? `<button class="btn btn-sm btn-perigo" onclick="cancelar(${a.agendamento_id})">Cancelar</button>` : ''}
+        ${!aberto && a.status !== 'REALIZADO' && Sessao.pode('agenda.excluir') ? `<button class="btn btn-sm btn-perigo" onclick="excluir(${a.agendamento_id})" title="Exclusão física">Excluir</button>` : ''}
+      </div></td></tr>`;
+  }
+
+  /* --------------------------- Novo agendamento --------------------------- */
+  function abrirNovo(crianca = null) {
+    const form = $('#form-agendar');
+    form.reset();
+    criancaSel = null;
+    $('#crianca-escolhida').innerHTML = '';
+    form.crianca_id.value = '';
+    $('#seg-tipo').innerHTML = seg('tipo_atendimento', [['PRIMEIRA_SEMANA', '1ª semana'], ['PUERICULTURA', 'Puericultura'], ['TRIAGEM', 'Triagem'], ['VACINA', 'Vacina'], ['VISITA_DOMICILIAR', 'Visita domiciliar']], 'PUERICULTURA', { limpar: false });
+    $('#seg-local').innerHTML = seg('local_atendimento', [['UNIDADE', 'Unidade'], ['DOMICILIO', 'Domicílio']], 'UNIDADE', { limpar: false });
+    $('#a-esp').innerHTML = opcoes(DOM.especialidades, 'especialidade_id', 'nome', '');
+    $('#a-unid').innerHTML = opcoes(DOM.unidades, 'unidade_id', 'nome', Sessao.usuario.unidade_id);
+    $('#a-prof').innerHTML = '<option value="">Escolha a especialidade</option>';
+    $('#a-data').value = $('#f-data').value >= hojeISO() ? $('#f-data').value : hojeISO();
+    $('#a-data').min = hojeISO();
+    if (crianca) escolherCrianca(crianca);
+    abrirModal('dlg-agendar');
+    dica();
+  }
+
+  $('#a-esp').addEventListener('change', () => {
+    const esp = $('#a-esp').value;
+    const lista = PROFS.filter(p => (p.especialidade_ids || '').split(',').includes(esp));
+    $('#a-prof').innerHTML = opcoes(lista, 'profissional_id', 'nome', '', lista.length ? 'Selecione...' : 'Ninguém atende esta especialidade');
+  });
+  $('#a-prof').addEventListener('change', () => {
+    const p = PROFS.find(x => String(x.profissional_id) === $('#a-prof').value);
+    if (p) $('#a-unid').value = p.unidade_id;
+  });
+  $('#form-agendar').addEventListener('change', dica);
+
+  // Regra da 1ª semana visível já no formulário (a procedure também valida)
+  function dica() {
+    const f = lerForm($('#form-agendar'));
+    const el = $('#dica-prazo');
+    if (f.tipo_atendimento !== 'PRIMEIRA_SEMANA' || !criancaSel || !f.data) { el.innerHTML = ''; return; }
+    const dias = Math.round((new Date(`${f.data}T12:00:00`) - new Date(`${criancaSel.nasc}T12:00:00`)) / 86400000);
+    el.innerHTML = dias >= 3 && dias <= 5
+      ? `<div class="aviso ok">Neste dia o bebê terá ${dias} dias: dentro do prazo ideal (3º ao 5º dia).</div>`
+      : dias <= 7 ? `<div class="aviso atencao">Neste dia o bebê terá ${dias} dias. O ideal é do 3º ao 5º dia de vida.</div>`
+        : `<div class="aviso alerta">Neste dia o bebê terá ${dias} dias: a consulta da 1ª semana só pode ser marcada até o 7º dia.</div>`;
+  }
+
+  function escolherCrianca(c) {
+    criancaSel = c;
+    $('#form-agendar').crianca_id.value = c.crianca_id;
+    $('#crianca-escolhida').innerHTML = `<div class="escolhido" style="margin-top:8px"><span class="pessoa"><b>${esc(c.titulo)}</b><small>${esc(c.sub)} · ${idadeTexto(c.idade)}</small></span></div>`;
+    if (c.idade !== undefined && c.idade <= 7) { const r = $('input[name=tipo_atendimento][value=PRIMEIRA_SEMANA]'); if (r) r.checked = true; }
+    dica();
+  }
+
+  (function autocompletarCrianca() {
+    const input = $('#busca-crianca'), caixa = $('#sug-crianca');
+    let t, itens = [];
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      if (input.value.trim().length < 3) { caixa.hidden = true; return; }
+      t = setTimeout(async () => {
+        itens = (await api(`/criancas?busca=${encodeURIComponent(input.value.trim())}`)).map(c => ({
+          crianca_id: c.crianca_id, titulo: c.nome, sub: `Mãe: ${c.mae_nome}`, idade: c.idade_dias, nasc: c.data_nascimento, unidade: c.unidade_id,
+        }));
+        caixa.innerHTML = itens.length ? itens.map((i, n) => `<button type="button" data-n="${n}"><b>${esc(i.titulo)}</b><br><small>${esc(i.sub)} · ${idadeTexto(i.idade)}</small></button>`).join('')
+          : '<div class="vazio" style="padding:12px">Nada encontrado.</div>';
+        caixa.hidden = false;
+      }, 250);
+    });
+    caixa.addEventListener('click', e => {
+      const b = e.target.closest('[data-n]'); if (!b) return;
+      escolherCrianca(itens[b.dataset.n]); caixa.hidden = true; input.value = '';
+    });
+  })();
+
+  $('#form-agendar').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      const r = await api('/agendamentos', { method: 'POST', body: lerForm(e.target) });
+      toast(r.mensagem, 'ok');
+      fecharModal('dlg-agendar');
+      $('#f-data').value = lerForm(e.target).data;
+      carregar();
+    } catch (err) { erroNaTela(err); }
+  });
+
+  /* ----------------------- Cancelar / faltou / excluir ---------------------- */
+  async function cancelar(id) {
+    const motivo = await pedirMotivo({ titulo: 'Cancelar agendamento', texto: 'O horário fica livre e o registro continua no histórico (exclusão lógica).', rotuloBotao: 'Cancelar agendamento', perigo: true });
+    if (motivo === null) return;
+    try { const r = await api(`/agendamentos/${id}/cancelar`, { method: 'PATCH', body: { motivo, status: 'CANCELADO' } }); toast(r.mensagem, 'ok'); carregar(); }
+    catch (e) { erroNaTela(e); }
+  }
+  async function faltou(id) {
+    try { const r = await api(`/agendamentos/${id}/cancelar`, { method: 'PATCH', body: { status: 'FALTOU', motivo: 'Não compareceu' } }); toast(r.mensagem, 'ok'); carregar(); }
+    catch (e) { erroNaTela(e); }
+  }
+  async function excluir(id) {
+    const ok = await pedirMotivo({ titulo: 'Excluir definitivamente?', texto: 'Apaga a linha do banco (DELETE). Só é permitido para agendamentos cancelados ou com falta.', rotuloBotao: 'Excluir', obrigatorio: false, perigo: true });
+    if (ok === null) return;
+    try { const r = await api(`/agendamentos/${id}`, { method: 'DELETE' }); toast(r.mensagem, 'ok'); carregar(); }
+    catch (e) { erroNaTela(e); }
+  }
+</script>
+</body>
+</html>

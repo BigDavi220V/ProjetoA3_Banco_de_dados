@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profissionais · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <div class="topo">
+      <div><h1>Profissionais</h1><p>Médicos(as), enfermeiros(as), técnicos(as) e fonoaudiólogos(as) da rede, por especialidade.</p></div>
+    </div>
+    <section class="card">
+      <form class="filtros" id="filtros">
+        <div class="campo cresce"><label for="f-busca">Nome</label><input id="f-busca" name="busca" type="search" autocomplete="off"></div>
+        <div class="campo"><label for="f-esp">Especialidade</label><select id="f-esp" name="especialidade_id"></select></div>
+        <div class="campo"><label for="f-cat">Categoria</label><select id="f-cat" name="categoria_id"></select></div>
+        <div class="campo"><label for="f-uni">Lotação</label><select id="f-uni" name="unidade_id"></select></div>
+      </form>
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr><th>Profissional</th><th>Registro</th><th>Especialidades</th><th>Lotação</th><th class="num">Consultas (30 dias)</th><th class="num">Agenda futura</th></tr></thead>
+          <tbody id="lista"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script>
+  if (montarLayout('profissionais')) iniciar();
+
+  async function iniciar() {
+    const d = await dominios();
+    $('#f-esp').innerHTML = opcoes(d.especialidades, 'especialidade_id', 'nome', '', 'Todas');
+    $('#f-cat').innerHTML = opcoes(d.categorias, 'categoria_id', 'nome', '', 'Todas');
+    $('#f-uni').innerHTML = opcoes(d.unidades, 'unidade_id', 'nome', '', 'Todas');
+    let t;
+    $('#filtros').addEventListener('input', () => { clearTimeout(t); t = setTimeout(carregar, 250); });
+    $('#filtros').addEventListener('submit', e => { e.preventDefault(); carregar(); });
+    carregar();
+  }
+
+  async function carregar() {
+    const f = lerForm($('#filtros'));
+    try {
+      const lista = await api(`/profissionais?${new URLSearchParams(Object.entries(f).filter(([, v]) => v))}`);
+      $('#lista').innerHTML = lista.length ? lista.map(p => `<tr>
+        <td><div class="pessoa"><b>${esc(p.nome)}</b><small>${esc(p.categoria)}</small></div></td>
+        <td>${p.registro_conselho ? `${esc(p.conselho)} ${esc(p.registro_conselho)}/${esc(p.uf_conselho)}` : '<span class="muted">—</span>'}</td>
+        <td><div class="tags">${(p.especialidades || '').split(', ').filter(Boolean).map(e => `<span class="tag ok">${esc(e)}</span>`).join('') || '<span class="muted">—</span>'}</div></td>
+        <td>${esc(p.unidade)}</td>
+        <td class="num">${p.consultas_30_dias}</td>
+        <td class="num">${p.agendamentos_futuros}</td></tr>`).join('')
+        : '<tr><td colspan="6" class="vazio">Nenhum profissional com esses filtros.</td></tr>';
+    } catch (e) { erroNaTela(e); }
+  }
+</script>
+</body>
+</html>

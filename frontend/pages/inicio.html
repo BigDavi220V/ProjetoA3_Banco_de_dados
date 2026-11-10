@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Início · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <div class="topo">
+      <div>
+        <h1 id="saudacao">Início</h1>
+        <p id="subtitulo">O que precisa da sua atenção hoje.</p>
+      </div>
+      <div class="acoes">
+        <a class="btn" href="agenda.html">Ver agenda</a>
+        <a class="btn btn-primario" href="criancas.html?novo=1" data-perm="criancas.editar">+ Cadastrar recém-nascido</a>
+      </div>
+    </div>
+
+    <section class="kpis" id="kpis"><div class="carregando">Carregando...</div></section>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-cab"><h2>Agenda de hoje</h2><a class="btn btn-sm" href="agenda.html">Abrir agenda</a></div>
+        <ul class="lista" id="agenda-hoje"></ul>
+      </section>
+
+      <div>
+        <section class="card">
+          <div class="card-cab"><h2>Triagens neonatais a resolver</h2><span class="muted" style="font-size:.82rem">alterados primeiro</span></div>
+          <ul class="lista" id="triagens"></ul>
+        </section>
+        <section class="card">
+          <div class="card-cab"><h2>Merecem cuidado especial</h2></div>
+          <ul class="lista" id="cuidado"></ul>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../assets/js/app.js"></script>
+<script>
+  if (montarLayout('inicio')) carregar();
+
+  async function carregar() {
+    const u = Sessao.usuario;
+    const h = new Date().getHours();
+    $('#saudacao').textContent = `${h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'}, ${u.nome.replace(/\s*\(.*\)$/, '')}`;
+    $$('[data-perm]').forEach(el => { el.hidden = !Sessao.pode(el.dataset.perm); });
+
+    try {
+      const d = await api('/dashboard');
+      const k = d.indicadores;
+      $('#subtitulo').textContent = u.perfil === 'GESTOR' ? 'Visão de toda a rede.' : 'Visão da sua unidade.';
+      $('#kpis').innerHTML = [
+        ['agendados_hoje', 'agendados para hoje', ''],
+        ['atendidos_hoje', 'atendidos hoje', ''],
+        ['recem_nascidos', 'recém-nascidos (até 28 dias)', ''],
+        ['sem_consulta_1a_semana', 'sem consulta da 1ª semana', k.sem_consulta_1a_semana ? 'atencao' : ''],
+        ['triagens_pendentes', 'triagens pendentes', k.triagens_pendentes ? 'atencao' : ''],
+        ['cuidado_especial', 'crianças em cuidado especial', k.cuidado_especial ? 'alerta' : ''],
+      ].map(([c, t, cls]) => `<div class="kpi ${cls}"><strong>${k[c] ?? 0}</strong><span>${t}</span></div>`).join('');
+
+      $('#agenda-hoje').innerHTML = d.agendaHoje.length ? d.agendaHoje.map(a => `
+        <li>
+          <span class="hora">${horaBR(a.data_hora)}</span>
+          <span class="pessoa" style="flex:1">
+            <b><a href="caderneta.html?id=${a.crianca_id}">${esc(a.crianca_nome)}</a></b>
+            <small>${rotulo(a.tipo_atendimento)} · ${esc(a.profissional_nome)} · ${idadeTexto(a.idade_dias_no_dia)}</small>
+          </span>
+          ${tag(a.status)}
+        </li>`).join('') : '<li class="vazio">Nenhum atendimento marcado para hoje.</li>';
+
+      $('#triagens').innerHTML = d.triagens.length ? d.triagens.map(t => `
+        <li>
+          <span class="pessoa"><b><a href="caderneta.html?id=${t.crianca_id}#triagens">${esc(t.crianca_nome)}</a></b>
+          <small>Teste ${esc(t.nome_popular)} · ${idadeTexto(t.dias_de_vida)}</small></span>
+          ${t.resultado ? tag(t.resultado) : tag(t.situacao)}
+        </li>`).join('') : '<li class="vazio">Tudo em dia.</li>';
+
+      $('#cuidado').innerHTML = d.cuidado.length ? d.cuidado.map(c => {
+        const motivos = [
+          c.alerta_baixo_peso && 'baixo peso', c.alerta_prematuro && 'prematuro',
+          c.alerta_apgar_baixo && 'Apgar < 7', c.alerta_mae_adolescente && 'mãe adolescente', c.alerta_utin && 'passou pela UTIN',
+        ].filter(Boolean);
+        return `<li><span class="pessoa"><b><a href="caderneta.html?id=${c.crianca_id}">${esc(c.nome)}</a></b>
+          <small>${idadeTexto(c.idade_dias)} · ${gramas(c.peso_nascer_g)} · ${c.ig_semanas ?? '—'} semanas</small></span>
+          <span class="tags">${motivos.map(m => `<span class="tag alerta">${m}</span>`).join('')}</span></li>`;
+      }).join('') : '<li class="vazio">Nenhuma criança em risco na lista.</li>';
+    } catch (e) {
+      $('#kpis').innerHTML = `<div class="aviso alerta">${esc(e.message)}</div>`;
+    }
+  }
+</script>
+</body>
+</html>

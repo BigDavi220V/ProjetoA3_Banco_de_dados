@@ -1,0 +1,36 @@
+{
+  "name": "caderneta-digital-backend",
+  "version": "1.0.0",
+  "description": "API da Caderneta Digital da Criança (A3 Banco de Dados) — Node.js + Express + SQL Server",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "db:setup": "node scripts/db-setup.js",
+    "db:reset": "node scripts/db-setup.js --reset",
+    "db:consultas": "node scripts/db-setup.js --dql",
+    "check": "node scripts/check.js"
+  },
+  "keywords": [
+    "sql-server",
+    "t-sql",
+    "caderneta-da-crianca",
+    "unifacs",
+    "a3"
+  ],
+  "author": "Davi Santiago de Jesus",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "express-rate-limit": "^7.5.1",
+    "jsonwebtoken": "^9.0.3",
+    "mssql": "^11.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}

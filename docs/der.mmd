@@ -1,0 +1,92 @@
+erDiagram
+  GESTANTE ||--o{ GESTANTE_TELEFONE : "tem"
+  GESTANTE ||--o{ GESTACAO : "tem"
+  GESTACAO ||--o{ SOROLOGIA_PRENATAL : "registra"
+  AGRAVO ||--o{ SOROLOGIA_PRENATAL : "classifica"
+  GESTACAO ||--o{ VACINA_PRENATAL : "registra"
+  VACINA ||--o{ VACINA_PRENATAL : "é"
+  GESTACAO ||--o| PARTO : "termina em"
+  UNIDADE_SAUDE ||--o{ PARTO : "local"
+  GESTACAO ||--|{ CRIANCA : "gera"
+  CRIANCA ||--|| PRONTUARIO : "possui"
+  CRIANCA ||--o| NASCIMENTO : "tem"
+  CRIANCA ||--o| INTERNACAO_NEONATAL : "pode ter"
+  INTERNACAO_NEONATAL ||--|{ INTERNACAO_SETOR : "passa por"
+  SETOR_INTERNACAO ||--o{ INTERNACAO_SETOR : "é"
+  CRIANCA ||--o| ALTA_MATERNIDADE : "recebe"
+  CRIANCA ||--o{ TRIAGEM_NEONATAL : "faz"
+  TIPO_TRIAGEM ||--o{ TRIAGEM_NEONATAL : "é"
+  TRIAGEM_NEONATAL ||--o{ TRIAGEM_RESULTADO_LADO : "resulta"
+  TRIAGEM_NEONATAL ||--o{ OXIMETRIA_AFERICAO : "afere"
+  UNIDADE_SAUDE ||--o{ PROFISSIONAL : "lota"
+  CATEGORIA_PROFISSIONAL ||--o{ PROFISSIONAL : "classifica"
+  PROFISSIONAL ||--o{ PROFISSIONAL_ESPECIALIDADE : "possui"
+  ESPECIALIDADE ||--o{ PROFISSIONAL_ESPECIALIDADE : "habilita"
+  CRIANCA ||--o{ AGENDAMENTO : "tem"
+  PROFISSIONAL ||--o{ AGENDAMENTO : "atende"
+  ESPECIALIDADE ||--o{ AGENDAMENTO : "de"
+  AGENDAMENTO ||--o| CONSULTA : "vira"
+  CRIANCA ||--o{ CONSULTA : "recebe"
+  PROFISSIONAL ||--o{ CONSULTA : "realiza"
+  ESPECIALIDADE ||--o{ CONSULTA : "de"
+  CONSULTA ||--o{ CONSULTA_SINAL_ALERTA : "avalia"
+  SINAL_ALERTA ||--o{ CONSULTA_SINAL_ALERTA : "é"
+  CRIANCA ||--o{ VACINA_APLICADA : "recebe"
+  VACINA ||--o{ VACINA_APLICADA : "é"
+  PERFIL ||--o{ USUARIO : "define"
+  PROFISSIONAL ||--o| USUARIO : "acessa como"
+
+  GESTANTE { int gestante_id PK
+    nvarchar nome
+    char cpf UK
+    char cns UK
+    date data_nascimento
+    varchar tipo_sanguineo }
+  GESTACAO { int gestacao_id PK
+    int gestante_id FK
+    bit fez_prenatal
+    tinyint numero_consultas
+    varchar tipo_gravidez
+    varchar coombs_indireto }
+  CRIANCA { int crianca_id PK
+    int gestacao_id FK
+    nvarchar nome
+    char sexo
+    date data_nascimento
+    char cns UK
+    bit ativo }
+  NASCIMENTO { int nascimento_id PK
+    int crianca_id FK,UK
+    tinyint apgar_5min
+    tinyint ig_semanas
+    smallint peso_g
+    varchar coombs_direto }
+  PARTO { int parto_id PK
+    int gestacao_id FK,UK
+    varchar local_tipo
+    varchar tipo_parto }
+  SOROLOGIA_PRENATAL { int gestacao_id PK,FK
+    int agravo_id PK,FK
+    tinyint trimestre PK
+    varchar resultado }
+  TRIAGEM_NEONATAL { int triagem_id PK
+    int crianca_id FK
+    int tipo_triagem_id FK
+    bit realizada
+    date data_realizacao }
+  PROFISSIONAL { int profissional_id PK
+    nvarchar nome
+    char cpf UK
+    int categoria_id FK
+    int unidade_id FK }
+  AGENDAMENTO { int agendamento_id PK
+    int crianca_id FK
+    int profissional_id FK
+    datetime2 data_hora
+    varchar status }
+  CONSULTA { int consulta_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int agendamento_id FK,UK
+    varchar tipo_atendimento
+    smallint peso_g }

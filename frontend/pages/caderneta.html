@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caderneta · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <p style="margin:0 0 10px"><a href="criancas.html">← Crianças</a></p>
+
+    <section class="card" id="ficha"><div class="carregando">Carregando caderneta...</div></section>
+
+    <nav class="abas" role="tablist" id="abas">
+      <button role="tab" data-aba="resumo">Resumo</button>
+      <button role="tab" data-aba="prenatal"><span class="marcador" id="m-prenatal"></span>Pré-natal</button>
+      <button role="tab" data-aba="nascimento"><span class="marcador" id="m-nascimento"></span>Parto e nascimento</button>
+      <button role="tab" data-aba="alta"><span class="marcador" id="m-alta"></span>Internação e alta</button>
+      <button role="tab" data-aba="triagens"><span class="marcador" id="m-triagens"></span>Triagens neonatais</button>
+      <button role="tab" data-aba="consultas"><span class="marcador" id="m-consultas"></span>Consultas</button>
+      <button role="tab" data-aba="vacinas"><span class="marcador" id="m-vacinas"></span>Vacinas</button>
+    </nav>
+
+    <section data-painel="resumo" class="grid-2">
+      <div class="card"><div class="card-cab"><h2>Linha do tempo</h2></div><div class="card-corpo"><ul class="timeline" id="timeline"></ul></div></div>
+      <div>
+        <div class="card"><div class="card-cab"><h2>Agendamentos</h2><a class="btn btn-sm" id="lnk-agendar" data-perm="agenda.gerenciar">+ Agendar</a></div><ul class="lista" id="lista-agenda"></ul></div>
+        <div class="card"><div class="card-cab"><h2>Mãe</h2></div><div class="card-corpo" id="dados-mae"></div></div>
+      </div>
+    </section>
+
+    <section data-painel="prenatal" class="card" hidden>
+      <div class="card-cab"><div><h2>Pré-natal</h2><small>Gestação compartilhada entre irmãos gêmeos.</small></div></div>
+      <form class="card-corpo" id="form-prenatal" novalidate></form>
+    </section>
+
+    <section data-painel="nascimento" class="card" hidden>
+      <div class="card-cab"><h2>Parto e nascimento</h2><span id="adequacao"></span></div>
+      <form class="card-corpo" id="form-nascimento" novalidate></form>
+    </section>
+
+    <section data-painel="alta" class="card" hidden>
+      <div class="card-cab"><h2>Internação neonatal e alta</h2></div>
+      <form class="card-corpo" id="form-alta" novalidate></form>
+    </section>
+
+    <section data-painel="triagens" hidden>
+      <div class="aviso" style="margin-bottom:14px">As triagens devem ser feitas nos primeiros 7 dias de vida, na maternidade, no domicílio ou na unidade. Cada teste é salvo separadamente.</div>
+      <div class="triagens" id="triagens"></div>
+    </section>
+
+    <section data-painel="consultas" hidden>
+      <div class="card" id="card-nova-consulta" hidden>
+        <div class="card-cab"><div><h2 id="titulo-consulta">Consulta da 1ª semana</h2><small id="prazo-consulta"></small></div>
+          <button class="btn btn-sm" type="button" id="btn-fechar-consulta">Fechar</button></div>
+        <form class="card-corpo" id="form-consulta" novalidate></form>
+      </div>
+      <div class="card">
+        <div class="card-cab"><h2>Consultas registradas</h2><button class="btn btn-primario btn-sm" id="btn-nova-consulta" data-perm="consulta.registrar">+ Registrar consulta</button></div>
+        <div id="lista-consultas"></div>
+      </div>
+    </section>
+
+    <section data-painel="vacinas" class="card" hidden>
+      <div class="card-cab"><h2>Vacinas aplicadas</h2></div>
+      <form class="filtros" id="form-vacina" data-perm="vacina.registrar" novalidate>
+        <div class="campo"><label class="obrig" for="v-vacina">Vacina</label><select id="v-vacina" name="vacina_id"></select></div>
+        <div class="campo"><label class="obrig" for="v-dose">Dose</label>
+          <select id="v-dose" name="dose"><option value="D1">1ª dose</option><option value="DU">Dose única</option><option value="D2">2ª dose</option><option value="D3">3ª dose</option><option value="REF">Reforço</option></select></div>
+        <div class="campo"><label class="obrig" for="v-data">Data</label><input id="v-data" name="data_aplicacao" type="date"></div>
+        <div class="campo"><label for="v-lote">Lote</label><input id="v-lote" name="lote" type="text" maxlength="20"></div>
+        <button class="btn btn-primario" type="submit">Registrar vacina</button>
+      </form>
+      <div class="tabela-wrap"><table class="tabela"><thead><tr><th>Vacina</th><th>Dose</th><th>Data</th><th>Lote</th><th>Profissional / unidade</th><th></th></tr></thead>
+        <tbody id="lista-vacinas"></tbody></table></div>
+    </section>
+  </main>
+</div>
+
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/caderneta.js"></script>
+</body>
+</html>

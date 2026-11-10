@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crianças · Caderneta Digital</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body>
+<div class="app">
+  <main class="conteudo">
+    <div class="topo">
+      <div><h1>Crianças</h1><p>Busque pelo nome do bebê, da mãe, pelo CNS ou pelo número do prontuário.</p></div>
+      <div class="acoes"><button class="btn btn-primario" id="btn-novo" data-perm="criancas.editar">+ Cadastrar criança</button></div>
+    </div>
+
+    <section class="card">
+      <form class="filtros" id="filtros">
+        <div class="campo cresce"><label for="f-busca">Buscar</label>
+          <input id="f-busca" name="busca" type="search" placeholder="Ex.: Lopes, Maria, 8000000..." autocomplete="off"></div>
+        <div class="campo"><label for="f-situacao">Situação</label>
+          <select id="f-situacao" name="situacao"><option value="ativas">Ativas</option><option value="inativas">Inativas</option><option value="todas">Todas</option></select></div>
+        <div class="campo"><label for="f-cuidado">Risco</label>
+          <select id="f-cuidado" name="cuidado"><option value="">Todas</option><option value="1">Só cuidado especial</option></select></div>
+      </form>
+      <div class="tabela-wrap">
+        <table class="tabela">
+          <thead><tr><th>Criança</th><th>Mãe</th><th>Nascimento</th><th>Unidade</th><th>Situação</th><th></th></tr></thead>
+          <tbody id="lista"><tr><td colspan="6" class="carregando">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Cadastro rápido: mãe + criança numa tela só -->
+<dialog id="dlg-crianca">
+  <form id="form-crianca" method="dialog" novalidate>
+    <div class="card-cab"><h2 id="dlg-titulo">Cadastrar criança</h2><button class="fechar" type="button" data-fechar aria-label="Fechar">×</button></div>
+    <div class="modal-corpo">
+      <fieldset id="bloco-mae">
+        <legend>1. Mãe</legend>
+        <div class="campo" style="margin-bottom:10px">
+          <span class="rotulo">Como identificar a mãe?</span>
+          <span id="seg-modo"></span>
+        </div>
+
+        <div data-mostrar="modo_mae=existente">
+          <div class="campo autocompletar">
+            <label for="busca-mae">Buscar mãe cadastrada (nome, CPF ou CNS)</label>
+            <input id="busca-mae" type="search" autocomplete="off" placeholder="Digite pelo menos 3 letras">
+            <div class="sugestoes" id="sug-mae" hidden></div>
+          </div>
+          <div id="mae-escolhida" style="margin-top:8px"></div>
+          <input type="hidden" name="gestante_id">
+        </div>
+
+        <div data-mostrar="modo_mae=gemeo">
+          <div class="campo autocompletar">
+            <label for="busca-irmao">Irmão(ã) gêmeo(a) já cadastrado(a)</label>
+            <input id="busca-irmao" type="search" autocomplete="off" placeholder="Nome do bebê ou da mãe">
+            <div class="sugestoes" id="sug-irmao" hidden></div>
+          </div>
+          <div id="irmao-escolhido" style="margin-top:8px"></div>
+          <input type="hidden" name="gemeo_de">
+          <p class="ajuda muted" style="font-size:.8rem">Gêmeos compartilham a mesma gestação e o mesmo parto.</p>
+        </div>
+
+        <div data-mostrar="modo_mae=nova" class="form-grid">
+          <div class="campo c-8"><label class="obrig" for="m-nome">Nome da mãe</label><input id="m-nome" name="m_nome" type="text" maxlength="150"></div>
+          <div class="campo c-4"><label class="obrig" for="m-nasc">Nascimento</label><input id="m-nasc" name="m_data_nascimento" type="date"></div>
+          <div class="campo c-4"><label for="m-cpf">CPF</label><input id="m-cpf" name="m_cpf" type="text" inputmode="numeric" maxlength="14"></div>
+          <div class="campo c-4"><label for="m-cns">CNS</label><input id="m-cns" name="m_cns" type="text" inputmode="numeric" maxlength="18"></div>
+          <div class="campo c-4"><label for="m-tel">Celular</label><input id="m-tel" name="m_telefone" type="text" inputmode="tel" placeholder="(71) 9...."></div>
+          <div class="campo c-8"><label for="m-end">Endereço</label><input id="m-end" name="m_logradouro" type="text" maxlength="120"></div>
+          <div class="campo c-4"><label for="m-bairro">Bairro</label><input id="m-bairro" name="m_bairro" type="text" maxlength="60"></div>
+          <p class="c-12 muted" style="margin:0;font-size:.8rem">Informe CPF <b>ou</b> CNS.</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend id="leg-crianca">2. Criança</legend>
+        <div class="form-grid">
+          <div class="campo c-8"><label class="obrig" for="c-nome">Nome</label><input id="c-nome" name="nome" type="text" maxlength="150" required></div>
+          <div class="campo c-4"><label class="obrig" for="c-nasc">Data de nascimento</label><input id="c-nasc" name="data_nascimento" type="date" required></div>
+          <div class="campo c-6"><span class="rotulo obrig">Sexo</span><span id="seg-sexo"></span></div>
+          <div class="campo c-6"><label for="c-cns">CNS do bebê</label><input id="c-cns" name="cns" type="text" inputmode="numeric" maxlength="18"></div>
+          <div class="campo c-6"><label class="obrig" for="c-unidade">UBS/USF de acompanhamento</label><select id="c-unidade" name="unidade_referencia_id"></select></div>
+          <div class="campo c-3"><label for="c-tipo">Tipo sanguíneo</label>
+            <select id="c-tipo" name="tipo_sanguineo"><option value="">—</option><option>A</option><option>B</option><option>AB</option><option>O</option></select></div>
+          <div class="campo c-3"><label for="c-rh">Rh</label>
+            <select id="c-rh" name="fator_rh"><option value="">—</option><option>+</option><option>-</option></select></div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="modal-rodape">
+      <button class="btn" type="button" data-fechar>Cancelar</button>
+      <button class="btn btn-primario" type="submit" id="btn-salvar">Salvar e abrir caderneta</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="../assets/js/app.js"></script>
+<script>
+  let editando = null;
+
+  if (montarLayout('criancas')) iniciar();
+
+  async function iniciar() {
+    $$('[data-perm]').forEach(el => { el.hidden = !Sessao.pode(el.dataset.perm); });
+    const dom = await dominios();
+    const ubs = dom.unidades.filter(u => ['UBS', 'USF'].includes(u.tipo));
+    $('#c-unidade').innerHTML = opcoes(ubs, 'unidade_id', 'nome', Sessao.usuario.unidade_id);
+
+    let t;
+    $('#filtros').addEventListener('input', () => { clearTimeout(t); t = setTimeout(carregar, 250); });
+    $('#filtros').addEventListener('submit', e => { e.preventDefault(); carregar(); });
+    $('#btn-novo').onclick = () => abrirCadastro();
+    if (new URLSearchParams(location.search).get('novo')) abrirCadastro();
+    carregar();
+  }
+
+  async function carregar() {
+    const f = lerForm($('#filtros'));
+    const qs = new URLSearchParams(Object.entries(f).filter(([, v]) => v)).toString();
+    try {
+      const lista = await api(`/criancas?${qs}`);
+      $('#lista').innerHTML = lista.length ? lista.map(linha).join('') :
+        '<tr><td colspan="6" class="vazio">Nenhuma criança encontrada.</td></tr>';
+    } catch (e) { erroNaTela(e); }
+  }
+
+  function linha(c) {
+    const pend = c.triagens_pendentes ? `<span class="tag atencao">${c.triagens_pendentes} triagem(ns) pendente(s)</span>` : '';
+    const risco = c.cuidado_especial ? '<span class="tag alerta">cuidado especial</span>' : '';
+    const prox = c.proximo_agendamento ? `<span class="tag info">próx.: ${dataBR(c.proximo_agendamento)} ${horaBR(c.proximo_agendamento)}</span>` : '';
+    const inativo = !c.ativo ? '<span class="tag">inativo</span>' : '';
+    const podeEditar = Sessao.pode('criancas.editar');
+    return `<tr>
+      <td><div class="pessoa"><b><a href="caderneta.html?id=${c.crianca_id}">${esc(c.nome)}</a></b>
+        <small>${esc(c.prontuario_numero || '')} · ${idadeTexto(c.idade_dias)}</small></div></td>
+      <td>${esc(c.mae_nome)}</td>
+      <td>${dataBR(c.data_nascimento)}<br><small>${gramas(c.peso_nascer_g)}${c.ig_semanas ? ` · ${c.ig_semanas} sem` : ''}</small></td>
+      <td>${esc(c.unidade_nome)}</td>
+      <td><div class="tags">${inativo}${risco}${pend}${prox}</div></td>
+      <td class="num"><div class="acoes" style="justify-content:flex-end">
+        <a class="btn btn-sm" href="caderneta.html?id=${c.crianca_id}">Caderneta</a>
+        ${podeEditar && c.ativo ? `<button class="btn btn-sm" onclick="abrirCadastro(${c.crianca_id})">Editar</button>
+          <button class="btn btn-sm btn-perigo" onclick="inativar(${c.crianca_id}, '${esc(c.nome)}')">Inativar</button>` : ''}
+        ${podeEditar && !c.ativo ? `<button class="btn btn-sm" onclick="reativar(${c.crianca_id})">Reativar</button>` : ''}
+        ${Sessao.pode('criancas.excluir') ? `<button class="btn btn-sm btn-perigo" onclick="excluir(${c.crianca_id}, '${esc(c.nome)}')" title="Exclusão física (gestão)">Excluir</button>` : ''}
+      </div></td></tr>`;
+  }
+
+  /* ---------------- Cadastro / edição ---------------- */
+  async function abrirCadastro(id = null) {
+    editando = id;
+    const form = $('#form-crianca');
+    form.reset();
+    $('#seg-modo').innerHTML = seg('modo_mae', [['existente', 'Já cadastrada'], ['nova', 'Cadastrar agora'], ['gemeo', 'É gêmeo(a)']], 'existente', { limpar: false });
+    $('#seg-sexo').innerHTML = seg('sexo', [['F', 'Feminino'], ['M', 'Masculino'], ['I', 'Indeterminado']], null, { limpar: false });
+    $('#mae-escolhida').innerHTML = ''; $('#irmao-escolhido').innerHTML = '';
+    form.gestante_id.value = ''; form.gemeo_de.value = '';
+    $('#bloco-mae').hidden = !!id;
+    $('#leg-crianca').textContent = id ? 'Dados da criança' : '2. Criança';
+    $('#dlg-titulo').textContent = id ? 'Editar cadastro' : 'Cadastrar criança';
+    $('#btn-salvar').textContent = id ? 'Salvar alterações' : 'Salvar e abrir caderneta';
+    if (id) {
+      const c = await api(`/criancas/${id}`);
+      preencherForm(form, { ...c, unidade_referencia_id: c.unidade_id, data_nascimento: c.data_nascimento });
+    } else {
+      $('#c-nasc').value = hojeISO();
+    }
+    $('#c-nasc').max = hojeISO();
+    if (!form._condicional) form._condicional = ativarCondicionais(form); else form._condicional();
+    abrirModal('dlg-crianca');
+    $(id ? '#c-nome' : '#busca-mae').focus();
+  }
+
+  // Busca de mãe e de irmão gêmeo com sugestões
+  autocompletar('#busca-mae', '#sug-mae', async q => (await api(`/gestantes?busca=${encodeURIComponent(q)}`)).map(g => ({
+    id: g.gestante_id, titulo: g.nome,
+    sub: `${g.cpf ? 'CPF ' + g.cpf : 'CNS ' + (g.cns || '—')} · ${g.idade_aprox} anos · ${g.filhos} filho(s) · ${g.telefones || 'sem telefone'}`,
+  })), item => {
+    $('#form-crianca').gestante_id.value = item.id;
+    $('#mae-escolhida').innerHTML = `<div class="escolhido"><span class="pessoa"><b>${esc(item.titulo)}</b><small>${esc(item.sub)}</small></span><button type="button" class="btn btn-sm" onclick="$('#form-crianca').gestante_id.value='';this.closest('.escolhido').remove()">Trocar</button></div>`;
+  });
+  autocompletar('#busca-irmao', '#sug-irmao', async q => (await api(`/criancas?situacao=todas&busca=${encodeURIComponent(q)}`)).map(c => ({
+    id: c.crianca_id, titulo: c.nome, sub: `Mãe: ${c.mae_nome} · nasceu ${dataBR(c.data_nascimento)}`, data: c.data_nascimento, unidade: c.unidade_id,
+  })), item => {
+    const f = $('#form-crianca');
+    f.gemeo_de.value = item.id;
+    f.data_nascimento.value = item.data;
+    f.unidade_referencia_id.value = item.unidade;
+    $('#irmao-escolhido').innerHTML = `<div class="escolhido"><span class="pessoa"><b>${esc(item.titulo)}</b><small>${esc(item.sub)}</small></span></div>`;
+  });
+
+  function autocompletar(inputSel, caixaSel, buscar, escolher) {
+    const input = $(inputSel), caixa = $(caixaSel);
+    let t, itens = [];
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      if (input.value.trim().length < 3) { caixa.hidden = true; return; }
+      t = setTimeout(async () => {
+        try {
+          itens = await buscar(input.value.trim());
+          caixa.innerHTML = itens.length ? itens.map((i, n) => `<button type="button" data-n="${n}"><b>${esc(i.titulo)}</b><br><small>${esc(i.sub)}</small></button>`).join('')
+            : '<div class="vazio" style="padding:12px">Nada encontrado.</div>';
+          caixa.hidden = false;
+        } catch (e) { erroNaTela(e); }
+      }, 250);
+    });
+    caixa.addEventListener('click', e => {
+      const b = e.target.closest('[data-n]');
+      if (!b) return;
+      escolher(itens[b.dataset.n]);
+      caixa.hidden = true; input.value = '';
+    });
+  }
+
+  $('#form-crianca').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = lerForm(e.target);
+    const corpo = {
+      nome: f.nome, sexo: f.sexo, data_nascimento: f.data_nascimento, cns: f.cns,
+      unidade_referencia_id: f.unidade_referencia_id, tipo_sanguineo: f.tipo_sanguineo, fator_rh: f.fator_rh,
+    };
+    try {
+      if (editando) {
+        await api(`/criancas/${editando}`, { method: 'PUT', body: corpo });
+        toast('Cadastro atualizado.', 'ok');
+        fecharModal('dlg-crianca');
+        return carregar();
+      }
+      if (f.modo_mae === 'existente') corpo.gestante_id = f.gestante_id;
+      if (f.modo_mae === 'gemeo') corpo.gemeo_de = f.gemeo_de;
+      if (f.modo_mae === 'nova') {
+        const tel = (f.m_telefone || '').replace(/\D/g, '');
+        corpo.gestante = {
+          nome: f.m_nome, data_nascimento: f.m_data_nascimento, cpf: f.m_cpf, cns: f.m_cns,
+          logradouro: f.m_logradouro, bairro: f.m_bairro,
+          telefones: tel ? [{ ddd: tel.slice(0, 2), numero: tel.slice(2), tipo: 'CELULAR', whatsapp: true }] : [],
+        };
+      }
+      const r = await api('/criancas', { method: 'POST', body: corpo });
+      toast(r.mensagem, 'ok');
+      location.href = `caderneta.html?id=${r.crianca_id}`;
+    } catch (err) { erroNaTela(err); }
+  });
+
+  /* ---------------- Inativação (lógica) e exclusão (física) ---------------- */
+  async function inativar(id, nome) {
+    const motivo = await pedirMotivo({ titulo: `Inativar ${nome}?`, texto: 'O cadastro sai das listas, os agendamentos futuros são cancelados e o histórico é preservado. Dá para reativar depois.', rotuloBotao: 'Inativar', perigo: true });
+    if (motivo === null) return;
+    try {
+      const r = await api(`/criancas/${id}`, { method: 'DELETE', body: { motivo } });
+      toast(r.mensagem, 'ok'); carregar();
+    } catch (e) { erroNaTela(e); }
+  }
+  async function reativar(id) {
+    try { const r = await api(`/criancas/${id}/reativar`, { method: 'PATCH' }); toast(r.mensagem, 'ok'); carregar(); }
+    catch (e) { erroNaTela(e); }
+  }
+  async function excluir(id, nome) {
+    const ok = await pedirMotivo({ titulo: `Excluir ${nome} definitivamente?`, texto: 'Use só para cadastro duplicado ou de teste. Se houver consultas ou agendamentos, o banco vai bloquear (integridade referencial).', rotuloBotao: 'Excluir de vez', obrigatorio: false, perigo: true });
+    if (ok === null) return;
+    try { const r = await api(`/criancas/${id}?fisico=1`, { method: 'DELETE' }); toast(r.mensagem, 'ok'); carregar(); }
+    catch (e) { erroNaTela(e); }
+  }
+</script>
+</body>
+</html>
