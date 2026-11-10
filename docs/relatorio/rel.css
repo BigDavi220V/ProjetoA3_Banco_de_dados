@@ -1,0 +1,44 @@
+@page { size: A4; margin: 22mm 18mm 20mm 20mm; }
+@page paisagem { size: A4 landscape; margin: 12mm; }
+@page capa { margin: 0; }
+* { box-sizing: border-box; }
+body { font-family: "Liberation Serif", "Times New Roman", serif; font-size: 11pt; line-height: 1.5; color: #1b1f1d; margin: 0; }
+h1, h2, h3, h4, .capa, .toc, table, figcaption, .rotulo-sql { font-family: "Liberation Sans", Arial, sans-serif; }
+.capa { page: capa; height: 297mm; padding: 26mm 24mm; display: flex; flex-direction: column; justify-content: space-between; background: #0b3d2e; color: #e6f2ec; break-after: page; }
+.capa .inst { font-size: 10.5pt; color: #a9cfbf; line-height: 1.5; }
+.capa .tag { display: inline-block; font-size: 9.5pt; letter-spacing: .08em; text-transform: uppercase; color: #8fd3b5; border-bottom: 2px solid #2f9b74; padding-bottom: 4px; }
+.capa h1 { font-size: 34pt; color: #fff; margin: 18px 0 10px; line-height: 1.1; }
+.capa .sub { font-size: 13pt; max-width: 130mm; color: #cfe5db; margin: 0; }
+.capa .trilha { font-size: 10pt; color: #8fb8a7; margin-top: 14px; }
+.capa .equipe { font-size: 10.5pt; color: #d8ece3; }
+.capa .equipe p { margin: 0 0 10px; }
+.sumario { break-after: page; }
+.sumario h1 { font-size: 18pt; color: #11533e; border-bottom: 2px solid #11533e; padding-bottom: 6px; }
+.toc { list-style: none; padding: 0; font-size: 11.5pt; }
+.toc li { padding: 7px 0; border-bottom: 1px dotted #b9c8c2; }
+.ficha-tec { margin-top: 28px; }
+.ficha-tec h3 { color: #11533e; }
+.secao { break-before: page; }
+.secao > h1 { font-size: 19pt; color: #11533e; margin: 0 0 14px; padding-bottom: 8px; border-bottom: 2px solid #11533e; }
+.secao > h1 .num { display: inline-block; background: #11533e; color: #fff; min-width: 30px; text-align: center; border-radius: 4px; margin-right: 10px; padding: 0 6px; }
+h2 { font-size: 13.5pt; color: #17694f; margin: 20px 0 8px; break-after: avoid; }
+h3 { font-size: 11.5pt; color: #1d2a26; margin: 16px 0 6px; break-after: avoid; }
+p { margin: 0 0 8px; text-align: justify; }
+table { width: 100%; border-collapse: collapse; font-size: 8.6pt; margin: 6px 0 12px; line-height: 1.35; }
+th { background: #e8f2ee; text-align: left; padding: 5px 6px; border: 1px solid #c4d4cd; color: #11533e; }
+td { padding: 4px 6px; border: 1px solid #d5e0dc; vertical-align: top; }
+tr { break-inside: avoid; }
+code { font-family: "Liberation Mono", Consolas, monospace; font-size: 8.6pt; background: #f0f4f2; padding: 0 3px; border-radius: 2px; }
+pre { background: #f4f7f6; border: 1px solid #d5e0dc; border-left: 3px solid #2f9b74; padding: 8px 10px; font-size: 8pt; line-height: 1.4; white-space: pre-wrap; break-inside: avoid; border-radius: 3px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+blockquote { margin: 8px 0; padding: 6px 12px; border-left: 3px solid #e3962b; background: #fff7ea; font-size: 10pt; }
+blockquote p { margin: 0; }
+ul, ol { margin: 4px 0 10px; padding-left: 22px; }
+li { margin: 2px 0; }
+.rotulo-sql { font-size: 8pt; color: #6b7a75; margin: -4px 0 2px; text-transform: uppercase; letter-spacing: .05em; }
+.paisagem { page: paisagem; break-before: page; break-after: page; }
+.paisagem .der-tit { margin: 0 0 4mm; font-size: 11pt; text-align: center; }
+img.der { width: 100%; max-height: 172mm; object-fit: contain; display: block; }
+figure { margin: 12px 0 18px; break-inside: avoid; text-align: center; }
+figure img { max-width: 100%; max-height: 190mm; border: 1px solid #d5e0dc; }
+figcaption { font-size: 9pt; color: #475651; margin-top: 4px; }
