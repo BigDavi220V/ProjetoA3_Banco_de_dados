@@ -1,0 +1,445 @@
+-- Gerado a partir dos DERs de docs/redesenho (v2 enxuta)
+-- Dialeto: SQL Server (T-SQL). Importar no SQL Developer Data Modeler: File > Import > DDL File.
+
+CREATE TABLE GESTANTE (
+    gestante_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    cpf VARCHAR(11),
+    cns VARCHAR(15),
+    data_nascimento DATE,
+    tipo_sanguineo VARCHAR(3),
+    fator_rh VARCHAR(1),
+    endereco NVARCHAR(1000),
+    ativo BIT,
+    CONSTRAINT PK_GESTANTE PRIMARY KEY (gestante_id)
+);
+
+CREATE TABLE GESTACAO (
+    gestacao_id INT IDENTITY(1,1) NOT NULL,
+    gestante_id INT,
+    dum DATE,
+    planejada BIT,
+    fez_prenatal BIT,
+    numero_consultas INT,
+    trimestre_inicio INT,
+    tipo_gravidez NVARCHAR(150),
+    gravidez_risco BIT,
+    risco_descricao NVARCHAR(1000),
+    coombs_indireto NVARCHAR(150),
+    CONSTRAINT PK_GESTACAO PRIMARY KEY (gestacao_id)
+);
+
+CREATE TABLE SOROLOGIA_PRENATAL (
+    gestacao_id INT NOT NULL,
+    agravo_id INT NOT NULL,
+    trimestre INT NOT NULL,
+    resultado NVARCHAR(150),
+    data_exame DATE,
+    CONSTRAINT PK_SOROLOGIA_PRENATAL PRIMARY KEY (gestacao_id, agravo_id, trimestre)
+);
+
+CREATE TABLE VACINA_PRENATAL (
+    gestacao_id INT NOT NULL,
+    vacina_id INT NOT NULL,
+    recebeu BIT,
+    CONSTRAINT PK_VACINA_PRENATAL PRIMARY KEY (gestacao_id, vacina_id)
+);
+
+CREATE TABLE PARTO (
+    parto_id INT IDENTITY(1,1) NOT NULL,
+    gestacao_id INT,
+    data_parto DATE,
+    local_tipo NVARCHAR(150),
+    unidade_id INT,
+    nome_maternidade NVARCHAR(150),
+    tipo_parto NVARCHAR(150),
+    motivo_cesarea NVARCHAR(1000),
+    teve_acompanhante BIT,
+    CONSTRAINT PK_PARTO PRIMARY KEY (parto_id)
+);
+
+CREATE TABLE CRIANCA (
+    crianca_id INT IDENTITY(1,1) NOT NULL,
+    gestacao_id INT,
+    unidade_referencia_id INT,
+    nome NVARCHAR(150),
+    nome_mae NVARCHAR(150),
+    data_nascimento DATE,
+    sexo VARCHAR(1),
+    cpf VARCHAR(11),
+    cns VARCHAR(15),
+    tipo_sanguineo VARCHAR(3),
+    fator_rh VARCHAR(1),
+    ativo BIT,
+    criado_em DATETIME2,
+    CONSTRAINT PK_CRIANCA PRIMARY KEY (crianca_id)
+);
+
+CREATE TABLE NASCIMENTO (
+    crianca_id INT NOT NULL,
+    hora_nascimento TIME,
+    pele_a_pele BIT,
+    mamou_primeira_hora BIT,
+    apgar_1min INT,
+    apgar_5min INT,
+    clampeamento_oportuno BIT,
+    ig_semanas INT,
+    ig_dias INT,
+    ig_metodo NVARCHAR(150),
+    peso_g INT,
+    comprimento_cm DECIMAL(6,2),
+    pc_cm DECIMAL(6,2),
+    reanimacao BIT,
+    assistido_por_nome NVARCHAR(150),
+    coombs_direto NVARCHAR(150),
+    profilaxia_oftalmica BIT,
+    vitamina_k BIT,
+    CONSTRAINT PK_NASCIMENTO PRIMARY KEY (crianca_id)
+);
+
+CREATE TABLE INTERNACAO_NEONATAL (
+    internacao_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    data_entrada DATE,
+    data_saida DATE,
+    motivo NVARCHAR(1000),
+    CONSTRAINT PK_INTERNACAO_NEONATAL PRIMARY KEY (internacao_id)
+);
+
+CREATE TABLE INTERNACAO_SETOR (
+    internacao_id INT NOT NULL,
+    setor_id INT NOT NULL,
+    dias INT,
+    CONSTRAINT PK_INTERNACAO_SETOR PRIMARY KEY (internacao_id, setor_id)
+);
+
+CREATE TABLE ALTA_MATERNIDADE (
+    alta_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    data_alta DATE,
+    peso_alta_g INT,
+    comprimento_alta_cm DECIMAL(6,2),
+    aleitamento NVARCHAR(150),
+    resumo_alta NVARCHAR(1000),
+    CONSTRAINT PK_ALTA_MATERNIDADE PRIMARY KEY (alta_id)
+);
+
+CREATE TABLE CRIANCA_VULNERABILIDADE (
+    crianca_id INT NOT NULL,
+    fator_id INT NOT NULL,
+    CONSTRAINT PK_CRIANCA_VULNERABILIDADE PRIMARY KEY (crianca_id, fator_id)
+);
+
+CREATE TABLE FATOR_VULNERABILIDADE (
+    fator_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    descricao NVARCHAR(1000),
+    CONSTRAINT PK_FATOR_VULNERABILIDADE PRIMARY KEY (fator_id)
+);
+
+CREATE TABLE PRONTUARIO (
+    prontuario_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    data_abertura DATE,
+    observacoes NVARCHAR(1000),
+    CONSTRAINT PK_PRONTUARIO PRIMARY KEY (prontuario_id)
+);
+
+CREATE TABLE UNIDADE_SAUDE (
+    unidade_id INT IDENTITY(1,1) NOT NULL,
+    cnes VARCHAR(7),
+    nome NVARCHAR(150),
+    tipo NVARCHAR(150),
+    endereco NVARCHAR(1000),
+    telefone NVARCHAR(150),
+    ativo BIT,
+    CONSTRAINT PK_UNIDADE_SAUDE PRIMARY KEY (unidade_id)
+);
+
+CREATE TABLE GESTANTE_TELEFONE (
+    telefone_id INT IDENTITY(1,1) NOT NULL,
+    gestante_id INT,
+    numero NVARCHAR(150),
+    tipo NVARCHAR(150),
+    CONSTRAINT PK_GESTANTE_TELEFONE PRIMARY KEY (telefone_id)
+);
+
+CREATE TABLE AGRAVO (
+    agravo_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    CONSTRAINT PK_AGRAVO PRIMARY KEY (agravo_id)
+);
+
+CREATE TABLE SETOR_INTERNACAO (
+    setor_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    CONSTRAINT PK_SETOR_INTERNACAO PRIMARY KEY (setor_id)
+);
+
+CREATE TABLE VACINA (
+    vacina_id INT IDENTITY(1,1) NOT NULL,
+    sigla NVARCHAR(150),
+    nome NVARCHAR(150),
+    publico_alvo NVARCHAR(150),
+    ativa BIT,
+    CONSTRAINT PK_VACINA PRIMARY KEY (vacina_id)
+);
+
+CREATE TABLE GRADE_ATENDIMENTO (
+    grade_id INT IDENTITY(1,1) NOT NULL,
+    profissional_id INT,
+    unidade_id INT,
+    dia_semana INT,
+    hora_inicio TIME,
+    hora_fim TIME,
+    duracao_slot_min INT,
+    vigencia_inicio DATE,
+    vigencia_fim DATE,
+    ativo BIT,
+    CONSTRAINT PK_GRADE_ATENDIMENTO PRIMARY KEY (grade_id)
+);
+
+CREATE TABLE AGENDAMENTO (
+    agendamento_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    profissional_id INT,
+    especialidade_id INT,
+    unidade_id INT,
+    reagendado_de_id INT,
+    data_hora DATETIME2,
+    duracao_min INT,
+    tipo_atendimento NVARCHAR(150),
+    local_atendimento NVARCHAR(150),
+    status NVARCHAR(150),
+    chegada_em DATETIME2,
+    motivo_cancelamento NVARCHAR(1000),
+    observacao NVARCHAR(1000),
+    CONSTRAINT PK_AGENDAMENTO PRIMARY KEY (agendamento_id)
+);
+
+CREATE TABLE CONSULTA (
+    consulta_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    profissional_id INT,
+    unidade_id INT,
+    agendamento_id INT,
+    data_hora DATETIME2,
+    tipo_atendimento NVARCHAR(150),
+    peso_g INT,
+    comprimento_cm DECIMAL(6,2),
+    pc_cm DECIMAL(6,2),
+    aleitamento NVARCHAR(150),
+    desenvolvimento_afeto NVARCHAR(1000),
+    conduta NVARCHAR(1000),
+    observacoes NVARCHAR(1000),
+    CONSTRAINT PK_CONSULTA PRIMARY KEY (consulta_id)
+);
+
+CREATE TABLE CONSULTA_SINAL_ALERTA (
+    consulta_id INT NOT NULL,
+    sinal_alerta_id INT NOT NULL,
+    presente BIT,
+    CONSTRAINT PK_CONSULTA_SINAL_ALERTA PRIMARY KEY (consulta_id, sinal_alerta_id)
+);
+
+CREATE TABLE TRIAGEM_NEONATAL (
+    triagem_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    tipo_triagem_id INT,
+    realizada BIT,
+    data_realizacao DATE,
+    metodo NVARCHAR(150),
+    resultado NVARCHAR(150),
+    data_reteste DATE,
+    conduta NVARCHAR(1000),
+    CONSTRAINT PK_TRIAGEM_NEONATAL PRIMARY KEY (triagem_id)
+);
+
+CREATE TABLE TRIAGEM_RESULTADO_LADO (
+    triagem_id INT NOT NULL,
+    lado NVARCHAR(150) NOT NULL,
+    resultado NVARCHAR(150),
+    CONSTRAINT PK_TRIAGEM_RESULTADO_LADO PRIMARY KEY (triagem_id, lado)
+);
+
+CREATE TABLE OXIMETRIA_AFERICAO (
+    triagem_id INT NOT NULL,
+    numero_afericao INT NOT NULL,
+    spo2_mao_direita INT,
+    spo2_pe INT,
+    data_hora DATETIME2,
+    CONSTRAINT PK_OXIMETRIA_AFERICAO PRIMARY KEY (triagem_id, numero_afericao)
+);
+
+CREATE TABLE CALENDARIO_VACINAL (
+    calendario_id INT IDENTITY(1,1) NOT NULL,
+    vacina_id INT,
+    dose NVARCHAR(150),
+    idade_minima_dias INT,
+    idade_ideal_dias INT,
+    idade_maxima_dias INT,
+    intervalo_dose_anterior_dias INT,
+    CONSTRAINT PK_CALENDARIO_VACINAL PRIMARY KEY (calendario_id)
+);
+
+CREATE TABLE VACINA_APLICADA (
+    vacina_aplicada_id INT IDENTITY(1,1) NOT NULL,
+    crianca_id INT,
+    vacina_id INT,
+    unidade_id INT,
+    profissional_id INT,
+    consulta_id INT,
+    dose NVARCHAR(150),
+    origem NVARCHAR(150),
+    data_aplicacao DATE,
+    lote NVARCHAR(150),
+    fabricante NVARCHAR(150),
+    local_aplicacao NVARCHAR(150),
+    CONSTRAINT PK_VACINA_APLICADA PRIMARY KEY (vacina_aplicada_id)
+);
+
+CREATE TABLE PROFISSIONAL (
+    profissional_id INT IDENTITY(1,1) NOT NULL,
+    unidade_id INT,
+    especialidade_id INT,
+    nome NVARCHAR(150),
+    cpf VARCHAR(11),
+    conselho NVARCHAR(150),
+    registro_conselho NVARCHAR(150),
+    cbo NVARCHAR(150),
+    ativo BIT,
+    CONSTRAINT PK_PROFISSIONAL PRIMARY KEY (profissional_id)
+);
+
+CREATE TABLE ESPECIALIDADE (
+    especialidade_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    CONSTRAINT PK_ESPECIALIDADE PRIMARY KEY (especialidade_id)
+);
+
+CREATE TABLE SINAL_ALERTA (
+    sinal_alerta_id INT IDENTITY(1,1) NOT NULL,
+    descricao NVARCHAR(1000),
+    CONSTRAINT PK_SINAL_ALERTA PRIMARY KEY (sinal_alerta_id)
+);
+
+CREATE TABLE TIPO_TRIAGEM (
+    tipo_triagem_id INT IDENTITY(1,1) NOT NULL,
+    nome NVARCHAR(150),
+    descricao NVARCHAR(1000),
+    CONSTRAINT PK_TIPO_TRIAGEM PRIMARY KEY (tipo_triagem_id)
+);
+
+CREATE TABLE USUARIO (
+    usuario_id INT IDENTITY(1,1) NOT NULL,
+    perfil_id INT,
+    unidade_id INT,
+    profissional_id INT,
+    nome NVARCHAR(150),
+    login NVARCHAR(150),
+    senha_hash NVARCHAR(150),
+    ativo BIT,
+    ultimo_acesso DATETIME2,
+    CONSTRAINT PK_USUARIO PRIMARY KEY (usuario_id)
+);
+
+CREATE TABLE PERFIL (
+    perfil_id INT IDENTITY(1,1) NOT NULL,
+    codigo NVARCHAR(150),
+    nome NVARCHAR(150),
+    descricao NVARCHAR(1000),
+    CONSTRAINT PK_PERFIL PRIMARY KEY (perfil_id)
+);
+
+CREATE TABLE PERMISSAO (
+    permissao_id INT IDENTITY(1,1) NOT NULL,
+    codigo NVARCHAR(150),
+    modulo NVARCHAR(150),
+    descricao NVARCHAR(1000),
+    CONSTRAINT PK_PERMISSAO PRIMARY KEY (permissao_id)
+);
+
+CREATE TABLE PERFIL_PERMISSAO (
+    perfil_id INT NOT NULL,
+    permissao_id INT NOT NULL,
+    CONSTRAINT PK_PERFIL_PERMISSAO PRIMARY KEY (perfil_id, permissao_id)
+);
+
+CREATE TABLE LOG_AUDITORIA (
+    log_id BIGINT IDENTITY(1,1) NOT NULL,
+    usuario_id INT,
+    tabela NVARCHAR(150),
+    operacao NVARCHAR(150),
+    chave NVARCHAR(150),
+    dados_antes NVARCHAR(1000),
+    dados_depois NVARCHAR(1000),
+    data_hora DATETIME2,
+    CONSTRAINT PK_LOG_AUDITORIA PRIMARY KEY (log_id)
+);
+
+ALTER TABLE GESTANTE ADD CONSTRAINT UK_01 UNIQUE (cpf);
+ALTER TABLE GESTANTE ADD CONSTRAINT UK_02 UNIQUE (cns);
+ALTER TABLE PARTO ADD CONSTRAINT UK_03 UNIQUE (gestacao_id);
+ALTER TABLE CRIANCA ADD CONSTRAINT UK_04 UNIQUE (cpf);
+ALTER TABLE CRIANCA ADD CONSTRAINT UK_05 UNIQUE (cns);
+ALTER TABLE INTERNACAO_NEONATAL ADD CONSTRAINT UK_06 UNIQUE (crianca_id);
+ALTER TABLE ALTA_MATERNIDADE ADD CONSTRAINT UK_07 UNIQUE (crianca_id);
+ALTER TABLE PRONTUARIO ADD CONSTRAINT UK_08 UNIQUE (crianca_id);
+ALTER TABLE UNIDADE_SAUDE ADD CONSTRAINT UK_09 UNIQUE (cnes);
+ALTER TABLE VACINA ADD CONSTRAINT UK_10 UNIQUE (sigla);
+ALTER TABLE CONSULTA ADD CONSTRAINT UK_11 UNIQUE (agendamento_id);
+ALTER TABLE PROFISSIONAL ADD CONSTRAINT UK_12 UNIQUE (cpf);
+ALTER TABLE USUARIO ADD CONSTRAINT UK_13 UNIQUE (profissional_id);
+ALTER TABLE USUARIO ADD CONSTRAINT UK_14 UNIQUE (login);
+ALTER TABLE PERFIL ADD CONSTRAINT UK_15 UNIQUE (codigo);
+ALTER TABLE PERMISSAO ADD CONSTRAINT UK_16 UNIQUE (codigo);
+
+ALTER TABLE GESTACAO ADD CONSTRAINT FK_01 FOREIGN KEY (gestante_id) REFERENCES GESTANTE (gestante_id);
+ALTER TABLE SOROLOGIA_PRENATAL ADD CONSTRAINT FK_02 FOREIGN KEY (gestacao_id) REFERENCES GESTACAO (gestacao_id);
+ALTER TABLE SOROLOGIA_PRENATAL ADD CONSTRAINT FK_03 FOREIGN KEY (agravo_id) REFERENCES AGRAVO (agravo_id);
+ALTER TABLE VACINA_PRENATAL ADD CONSTRAINT FK_04 FOREIGN KEY (gestacao_id) REFERENCES GESTACAO (gestacao_id);
+ALTER TABLE VACINA_PRENATAL ADD CONSTRAINT FK_05 FOREIGN KEY (vacina_id) REFERENCES VACINA (vacina_id);
+ALTER TABLE PARTO ADD CONSTRAINT FK_06 FOREIGN KEY (gestacao_id) REFERENCES GESTACAO (gestacao_id);
+ALTER TABLE PARTO ADD CONSTRAINT FK_07 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE CRIANCA ADD CONSTRAINT FK_08 FOREIGN KEY (gestacao_id) REFERENCES GESTACAO (gestacao_id);
+ALTER TABLE CRIANCA ADD CONSTRAINT FK_09 FOREIGN KEY (unidade_referencia_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE NASCIMENTO ADD CONSTRAINT FK_10 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE INTERNACAO_NEONATAL ADD CONSTRAINT FK_11 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE INTERNACAO_SETOR ADD CONSTRAINT FK_12 FOREIGN KEY (internacao_id) REFERENCES INTERNACAO_NEONATAL (internacao_id);
+ALTER TABLE INTERNACAO_SETOR ADD CONSTRAINT FK_13 FOREIGN KEY (setor_id) REFERENCES SETOR_INTERNACAO (setor_id);
+ALTER TABLE ALTA_MATERNIDADE ADD CONSTRAINT FK_14 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE CRIANCA_VULNERABILIDADE ADD CONSTRAINT FK_15 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE CRIANCA_VULNERABILIDADE ADD CONSTRAINT FK_16 FOREIGN KEY (fator_id) REFERENCES FATOR_VULNERABILIDADE (fator_id);
+ALTER TABLE PRONTUARIO ADD CONSTRAINT FK_17 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE GESTANTE_TELEFONE ADD CONSTRAINT FK_18 FOREIGN KEY (gestante_id) REFERENCES GESTANTE (gestante_id);
+ALTER TABLE GRADE_ATENDIMENTO ADD CONSTRAINT FK_19 FOREIGN KEY (profissional_id) REFERENCES PROFISSIONAL (profissional_id);
+ALTER TABLE GRADE_ATENDIMENTO ADD CONSTRAINT FK_20 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE AGENDAMENTO ADD CONSTRAINT FK_21 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE AGENDAMENTO ADD CONSTRAINT FK_22 FOREIGN KEY (profissional_id) REFERENCES PROFISSIONAL (profissional_id);
+ALTER TABLE AGENDAMENTO ADD CONSTRAINT FK_23 FOREIGN KEY (especialidade_id) REFERENCES ESPECIALIDADE (especialidade_id);
+ALTER TABLE AGENDAMENTO ADD CONSTRAINT FK_24 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE AGENDAMENTO ADD CONSTRAINT FK_25 FOREIGN KEY (reagendado_de_id) REFERENCES AGENDAMENTO (agendamento_id);
+ALTER TABLE CONSULTA ADD CONSTRAINT FK_26 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE CONSULTA ADD CONSTRAINT FK_27 FOREIGN KEY (profissional_id) REFERENCES PROFISSIONAL (profissional_id);
+ALTER TABLE CONSULTA ADD CONSTRAINT FK_28 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE CONSULTA ADD CONSTRAINT FK_29 FOREIGN KEY (agendamento_id) REFERENCES AGENDAMENTO (agendamento_id);
+ALTER TABLE CONSULTA_SINAL_ALERTA ADD CONSTRAINT FK_30 FOREIGN KEY (consulta_id) REFERENCES CONSULTA (consulta_id);
+ALTER TABLE CONSULTA_SINAL_ALERTA ADD CONSTRAINT FK_31 FOREIGN KEY (sinal_alerta_id) REFERENCES SINAL_ALERTA (sinal_alerta_id);
+ALTER TABLE TRIAGEM_NEONATAL ADD CONSTRAINT FK_32 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE TRIAGEM_NEONATAL ADD CONSTRAINT FK_33 FOREIGN KEY (tipo_triagem_id) REFERENCES TIPO_TRIAGEM (tipo_triagem_id);
+ALTER TABLE TRIAGEM_RESULTADO_LADO ADD CONSTRAINT FK_34 FOREIGN KEY (triagem_id) REFERENCES TRIAGEM_NEONATAL (triagem_id);
+ALTER TABLE OXIMETRIA_AFERICAO ADD CONSTRAINT FK_35 FOREIGN KEY (triagem_id) REFERENCES TRIAGEM_NEONATAL (triagem_id);
+ALTER TABLE CALENDARIO_VACINAL ADD CONSTRAINT FK_36 FOREIGN KEY (vacina_id) REFERENCES VACINA (vacina_id);
+ALTER TABLE VACINA_APLICADA ADD CONSTRAINT FK_37 FOREIGN KEY (crianca_id) REFERENCES CRIANCA (crianca_id);
+ALTER TABLE VACINA_APLICADA ADD CONSTRAINT FK_38 FOREIGN KEY (vacina_id) REFERENCES VACINA (vacina_id);
+ALTER TABLE VACINA_APLICADA ADD CONSTRAINT FK_39 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE VACINA_APLICADA ADD CONSTRAINT FK_40 FOREIGN KEY (profissional_id) REFERENCES PROFISSIONAL (profissional_id);
+ALTER TABLE VACINA_APLICADA ADD CONSTRAINT FK_41 FOREIGN KEY (consulta_id) REFERENCES CONSULTA (consulta_id);
+ALTER TABLE PROFISSIONAL ADD CONSTRAINT FK_42 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE PROFISSIONAL ADD CONSTRAINT FK_43 FOREIGN KEY (especialidade_id) REFERENCES ESPECIALIDADE (especialidade_id);
+ALTER TABLE USUARIO ADD CONSTRAINT FK_44 FOREIGN KEY (perfil_id) REFERENCES PERFIL (perfil_id);
+ALTER TABLE USUARIO ADD CONSTRAINT FK_45 FOREIGN KEY (unidade_id) REFERENCES UNIDADE_SAUDE (unidade_id);
+ALTER TABLE USUARIO ADD CONSTRAINT FK_46 FOREIGN KEY (profissional_id) REFERENCES PROFISSIONAL (profissional_id);
+ALTER TABLE PERFIL_PERMISSAO ADD CONSTRAINT FK_47 FOREIGN KEY (perfil_id) REFERENCES PERFIL (perfil_id);
+ALTER TABLE PERFIL_PERMISSAO ADD CONSTRAINT FK_48 FOREIGN KEY (permissao_id) REFERENCES PERMISSAO (permissao_id);
+ALTER TABLE LOG_AUDITORIA ADD CONSTRAINT FK_49 FOREIGN KEY (usuario_id) REFERENCES USUARIO (usuario_id);

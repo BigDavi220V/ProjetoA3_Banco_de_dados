@@ -1,0 +1,173 @@
+%% Módulo B — Agenda, consulta da 1ª semana, triagens e vacinação (calendário)
+erDiagram
+  CRIANCA ||--o{ AGENDAMENTO : "tem marcado"
+  PROFISSIONAL ||--o{ GRADE_ATENDIMENTO : "atende conforme"
+  UNIDADE_SAUDE ||--o{ GRADE_ATENDIMENTO : "em"
+  PROFISSIONAL ||--o{ AGENDAMENTO : "atende"
+  UNIDADE_SAUDE ||--o{ AGENDAMENTO : "em"
+  ESPECIALIDADE ||--o{ AGENDAMENTO : "de"
+  AGENDAMENTO |o--o| CONSULTA : "vira"
+  AGENDAMENTO |o--o| AGENDAMENTO : "reagendado de"
+  CRIANCA ||--o{ CONSULTA : "recebe"
+  PROFISSIONAL ||--o{ CONSULTA : "realiza"
+  CONSULTA ||--o{ CONSULTA_SINAL_ALERTA : "avalia"
+  SINAL_ALERTA ||--o{ CONSULTA_SINAL_ALERTA : "é"
+  CRIANCA ||--o{ TRIAGEM_NEONATAL : "faz"
+  TIPO_TRIAGEM ||--o{ TRIAGEM_NEONATAL : "é"
+  TRIAGEM_NEONATAL ||--o{ TRIAGEM_RESULTADO_LADO : "resulta"
+  TRIAGEM_NEONATAL ||--o{ OXIMETRIA_AFERICAO : "afere"
+  VACINA ||--o{ CALENDARIO_VACINAL : "tem doses"
+  CRIANCA ||--o{ VACINA_APLICADA : "recebe"
+  VACINA ||--o{ VACINA_APLICADA : "é"
+  CONSULTA |o--o{ VACINA_APLICADA : "pode registrar"
+
+  GRADE_ATENDIMENTO {
+    int grade_id PK
+    int profissional_id FK
+    int unidade_id FK
+    int dia_semana
+    time hora_inicio
+    time hora_fim
+    int duracao_slot_min
+    date vigencia_inicio
+    date vigencia_fim
+    bool ativo
+  }
+  AGENDAMENTO {
+    int agendamento_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int especialidade_id FK
+    int unidade_id FK
+    int reagendado_de_id FK
+    datetime data_hora
+    int duracao_min
+    string tipo_atendimento
+    string local_atendimento
+    string status
+    datetime chegada_em
+    string motivo_cancelamento
+    string observacao
+  }
+  CONSULTA {
+    int consulta_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int unidade_id FK
+    int agendamento_id FK, UK
+    datetime data_hora
+    string tipo_atendimento
+    int peso_g
+    decimal comprimento_cm
+    decimal pc_cm
+    string aleitamento
+    string desenvolvimento_afeto
+    string conduta
+    string observacoes
+  }
+  CONSULTA_SINAL_ALERTA {
+    int consulta_id PK, FK
+    int sinal_alerta_id PK, FK
+    bool presente
+  }
+  TRIAGEM_NEONATAL {
+    int triagem_id PK
+    int crianca_id FK
+    int tipo_triagem_id FK
+    bool realizada
+    date data_realizacao
+    string metodo
+    string resultado
+    date data_reteste
+    string conduta
+  }
+  TRIAGEM_RESULTADO_LADO {
+    int triagem_id PK, FK
+    string lado PK
+    string resultado
+  }
+  OXIMETRIA_AFERICAO {
+    int triagem_id PK, FK
+    int numero_afericao PK
+    int spo2_mao_direita
+    int spo2_pe
+    datetime data_hora
+  }
+  VACINA {
+    int vacina_id PK
+    string sigla UK
+    string nome
+    string publico_alvo
+    bool ativa
+  }
+  CALENDARIO_VACINAL {
+    int calendario_id PK
+    int vacina_id FK
+    string dose
+    int idade_minima_dias
+    int idade_ideal_dias
+    int idade_maxima_dias
+    int intervalo_dose_anterior_dias
+  }
+  VACINA_APLICADA {
+    int vacina_aplicada_id PK
+    int crianca_id FK
+    int vacina_id FK
+    int unidade_id FK
+    int profissional_id FK
+    int consulta_id FK
+    string dose
+    string origem
+    date data_aplicacao
+    string lote
+    string fabricante
+    string local_aplicacao
+  }
+  CRIANCA {
+    int crianca_id PK
+    int gestacao_id FK
+    int unidade_referencia_id FK
+    string nome
+    string nome_mae
+    date data_nascimento
+    string sexo
+    string cpf UK
+    string cns UK
+    string tipo_sanguineo
+    string fator_rh
+    bool ativo
+    datetime criado_em
+  }
+  PROFISSIONAL {
+    int profissional_id PK
+    int unidade_id FK
+    int especialidade_id FK
+    string nome
+    string cpf UK
+    string conselho
+    string registro_conselho
+    string cbo
+    bool ativo
+  }
+  UNIDADE_SAUDE {
+    int unidade_id PK
+    string cnes UK
+    string nome
+    string tipo
+    string endereco
+    string telefone
+    bool ativo
+  }
+  ESPECIALIDADE {
+    int especialidade_id PK
+    string nome
+  }
+  SINAL_ALERTA {
+    int sinal_alerta_id PK
+    string descricao
+  }
+  TIPO_TRIAGEM {
+    int tipo_triagem_id PK
+    string nome
+    string descricao
+  }

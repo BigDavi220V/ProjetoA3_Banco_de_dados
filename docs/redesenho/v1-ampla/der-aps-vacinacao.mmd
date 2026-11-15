@@ -1,0 +1,168 @@
+%% Módulo B — Atendimento e vacinação na APS
+erDiagram
+  CRIANCA ||--|| PRONTUARIO : "possui"
+  PRONTUARIO ||--o{ ATENDIMENTO : "reúne"
+  CRIANCA ||--o{ AGENDAMENTO : "tem marcado"
+  AGENDAMENTO |o--o| ATENDIMENTO : "origina"
+  UNIDADE_SAUDE ||--o{ ATENDIMENTO : "onde ocorreu"
+  PROFISSIONAL ||--o{ ATENDIMENTO : "quem registrou"
+  ATENDIMENTO ||--o| CONSULTA_CLINICA : "pode ter"
+  ATENDIMENTO ||--o{ MEDIDA_ANTROPOMETRICA : "mede"
+  CRIANCA ||--o{ MEDIDA_ANTROPOMETRICA : "histórico de"
+  ATENDIMENTO ||--o{ ATENDIMENTO_SINAL_ALERTA : "avalia"
+  SINAL_ALERTA ||--o{ ATENDIMENTO_SINAL_ALERTA : "é"
+
+  CRIANCA ||--o{ TRIAGEM_NEONATAL : "faz"
+  TIPO_TRIAGEM ||--o{ TRIAGEM_NEONATAL : "é"
+  TRIAGEM_NEONATAL |o--o{ TRIAGEM_NEONATAL : "reteste de"
+  TRIAGEM_NEONATAL ||--o{ TRIAGEM_RESULTADO : "resulta em"
+  TRIAGEM_NEONATAL ||--o{ TRIAGEM_AFERICAO : "afere"
+  ATENDIMENTO |o--o{ TRIAGEM_NEONATAL : "pode registrar"
+
+  IMUNOBIOLOGICO ||--o{ DOSE_PREVISTA : "tem doses"
+  ESQUEMA_VACINAL ||--o{ DOSE_PREVISTA : "define"
+  CRIANCA ||--o{ APLICACAO_VACINA : "recebe"
+  IMUNOBIOLOGICO ||--o{ APLICACAO_VACINA : "é"
+  DOSE_PREVISTA |o--o{ APLICACAO_VACINA : "cumpre"
+  ESTRATEGIA_VACINACAO |o--o{ APLICACAO_VACINA : "estratégia"
+  GRUPO_ATENDIMENTO |o--o{ APLICACAO_VACINA : "grupo"
+  UNIDADE_SAUDE |o--o{ APLICACAO_VACINA : "aplicada em"
+  PROFISSIONAL |o--o{ APLICACAO_VACINA : "registrada por"
+  ATENDIMENTO |o--o{ APLICACAO_VACINA : "pode registrar"
+  APLICACAO_VACINA |o--o| APLICACAO_VACINA : "corrige"
+
+  AGENDAMENTO {
+    int agendamento_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int unidade_id FK
+    int especialidade_id FK
+    datetime data_hora
+    string tipo_atendimento
+    string local_atendimento
+    string status
+    string motivo_cancelamento
+  }
+  ATENDIMENTO {
+    int atendimento_id PK
+    int prontuario_id FK
+    int agendamento_id FK, UK
+    int unidade_id FK
+    int profissional_id FK
+    int especialidade_id FK
+    string tipo_atendimento
+    string local_atendimento
+    datetime data_hora
+    string situacao
+    int corrige_atendimento_id FK
+  }
+  CONSULTA_CLINICA {
+    int atendimento_id PK, FK
+    string subjetivo
+    string objetivo
+    string avaliacao
+    string plano
+    string aleitamento
+    bool dificuldade_amamentar
+    string dificuldade_descricao
+    bool parou_amamentar
+    string idade_desmame
+    string motivo_desmame
+    string outros_sinais
+    string desenvolvimento_afeto
+    string rede_apoio_familia
+    string conduta_encaminhamento
+  }
+  MEDIDA_ANTROPOMETRICA {
+    int medida_id PK
+    int crianca_id FK
+    int atendimento_id FK
+    string origem
+    datetime data_hora
+    int peso_g
+    decimal comprimento_cm
+    decimal pc_cm
+  }
+  SINAL_ALERTA {
+    int sinal_alerta_id PK
+  }
+  ATENDIMENTO_SINAL_ALERTA {
+    int atendimento_id PK, FK
+    int sinal_alerta_id PK, FK
+    bool presente
+  }
+  TIPO_TRIAGEM {
+    int tipo_triagem_id PK
+  }
+  TRIAGEM_NEONATAL {
+    int triagem_id PK
+    int crianca_id FK
+    int tipo_triagem_id FK
+    int triagem_origem_id FK
+    string status
+    date data_realizacao
+    string metodo
+    string observacao
+    string encaminhamento
+    string situacao
+  }
+  TRIAGEM_RESULTADO {
+    int triagem_id PK, FK
+    string item PK
+    string resultado
+  }
+  TRIAGEM_AFERICAO {
+    int triagem_id PK, FK
+    int numero PK
+    int spo2_pre_ductal
+    int spo2_pos_ductal
+    datetime aferido_em
+  }
+  IMUNOBIOLOGICO {
+    int imunobiologico_id PK
+    string sigla UK
+    string nome
+  }
+  ESQUEMA_VACINAL {
+    int esquema_id PK
+    string nome
+    date vigencia_inicio
+    date vigencia_fim
+  }
+  DOSE_PREVISTA {
+    int dose_prevista_id PK
+    int esquema_id FK
+    int imunobiologico_id FK
+    string dose
+    int idade_minima_dias
+    int idade_ideal_dias
+    int idade_maxima_dias
+    int intervalo_minimo_dias
+  }
+  APLICACAO_VACINA {
+    int aplicacao_id PK
+    int crianca_id FK
+    int imunobiologico_id FK
+    int dose_prevista_id FK
+    string dose
+    string origem
+    date data_aplicacao
+    int unidade_id FK
+    int profissional_id FK
+    int atendimento_id FK
+    string lote
+    string fabricante
+    int estrategia_id FK
+    int grupo_atendimento_id FK
+    string via
+    string local_aplicacao
+    bool reaplicacao_justificada
+    string situacao
+    int corrige_aplicacao_id FK
+  }
+  ESTRATEGIA_VACINACAO {
+    int estrategia_id PK
+  }
+  GRUPO_ATENDIMENTO {
+    int grupo_atendimento_id PK
+  }

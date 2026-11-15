@@ -1,0 +1,79 @@
+%% Módulo C — Usuários, perfis, permissões, escopo por unidade e auditoria
+erDiagram
+  USUARIO |o--o| PROFISSIONAL : "pode ser"
+  USUARIO ||--o{ USUARIO_UNIDADE_PERFIL : "atua como"
+  UNIDADE_SAUDE |o--o{ USUARIO_UNIDADE_PERFIL : "em (nulo = rede)"
+  PERFIL ||--o{ USUARIO_UNIDADE_PERFIL : "define"
+  PERFIL ||--o{ PERFIL_PERMISSAO : "concede"
+  PERMISSAO ||--o{ PERFIL_PERMISSAO : "é concedida"
+  PROFISSIONAL ||--o{ PROFISSIONAL_UNIDADE : "é lotado"
+  UNIDADE_SAUDE ||--o{ PROFISSIONAL_UNIDADE : "tem equipe"
+  USUARIO ||--o{ ACESSO_EXCEPCIONAL : "solicita"
+  CRIANCA ||--o{ ACESSO_EXCEPCIONAL : "é acessada"
+  USUARIO |o--o{ LOG_AUDITORIA : "autor"
+  UNIDADE_SAUDE |o--o{ LOG_AUDITORIA : "contexto"
+
+  USUARIO {
+    int usuario_id PK
+    string login UK
+    string senha_hash
+    int profissional_id FK, UK
+    bool ativo
+    datetime ultimo_acesso
+  }
+  PERFIL {
+    int perfil_id PK
+    string codigo UK
+    string nome
+    string tipo_escopo
+  }
+  PERMISSAO {
+    int permissao_id PK
+    string codigo UK
+    string modulo
+    string acao
+    bool exige_vinculo_assistencial
+  }
+  PERFIL_PERMISSAO {
+    int perfil_id PK, FK
+    int permissao_id PK, FK
+  }
+  USUARIO_UNIDADE_PERFIL {
+    int vinculo_id PK
+    int usuario_id FK
+    int unidade_id FK
+    int perfil_id FK
+    date inicio
+    date fim
+    bool ativo
+  }
+  PROFISSIONAL_UNIDADE {
+    int profissional_id PK, FK
+    int unidade_id PK, FK
+    date inicio PK
+    date fim
+    bool principal
+  }
+  ACESSO_EXCEPCIONAL {
+    int acesso_id PK
+    int usuario_id FK
+    int crianca_id FK
+    int unidade_id FK
+    string justificativa
+    datetime concedido_em
+    datetime expira_em
+    int revisado_por_id FK
+    datetime revisado_em
+  }
+  LOG_AUDITORIA {
+    bigint log_id PK
+    int usuario_id
+    int unidade_id
+    string acao
+    string entidade
+    string registro_id
+    string justificativa
+    string dados_antes
+    string dados_depois
+    datetime data_hora
+  }

@@ -1,0 +1,168 @@
+%% Módulo A — Caderneta: pré-natal, parto, nascimento, internação neonatal, alta
+%% Dados transcritos da maternidade/caderneta para a UBS (internação 1:0..1, como no formulário)
+erDiagram
+  GESTANTE ||--o{ GESTANTE_TELEFONE : "tem"
+  GESTANTE ||--o{ GESTACAO : "tem"
+  GESTACAO ||--o{ SOROLOGIA_PRENATAL : "registra"
+  AGRAVO ||--o{ SOROLOGIA_PRENATAL : "classifica"
+  GESTACAO ||--o{ VACINA_PRENATAL : "registra"
+  VACINA ||--o{ VACINA_PRENATAL : "é"
+  GESTACAO ||--o| PARTO : "termina em"
+  UNIDADE_SAUDE |o--o{ PARTO : "maternidade"
+  GESTACAO ||--|{ CRIANCA : "gera"
+  UNIDADE_SAUDE ||--o{ CRIANCA : "é referência de"
+  CRIANCA ||--|| PRONTUARIO : "possui"
+  CRIANCA ||--o| NASCIMENTO : "tem"
+  CRIANCA ||--o| INTERNACAO_NEONATAL : "pode ter"
+  INTERNACAO_NEONATAL ||--|{ INTERNACAO_SETOR : "passa por"
+  SETOR_INTERNACAO ||--o{ INTERNACAO_SETOR : "é"
+  CRIANCA ||--o| ALTA_MATERNIDADE : "recebe"
+  CRIANCA ||--o{ CRIANCA_VULNERABILIDADE : "apresenta"
+  FATOR_VULNERABILIDADE ||--o{ CRIANCA_VULNERABILIDADE : "é"
+
+  GESTANTE {
+    int gestante_id PK
+    string nome
+    string cpf UK
+    string cns UK
+    date data_nascimento
+    string tipo_sanguineo
+    string fator_rh
+    string endereco
+    bool ativo
+  }
+  GESTACAO {
+    int gestacao_id PK
+    int gestante_id FK
+    date dum
+    bool planejada
+    bool fez_prenatal
+    int numero_consultas
+    int trimestre_inicio
+    string tipo_gravidez
+    bool gravidez_risco
+    string risco_descricao
+    string coombs_indireto
+  }
+  SOROLOGIA_PRENATAL {
+    int gestacao_id PK, FK
+    int agravo_id PK, FK
+    int trimestre PK
+    string resultado
+    date data_exame
+  }
+  VACINA_PRENATAL {
+    int gestacao_id PK, FK
+    int vacina_id PK, FK
+    bool recebeu
+  }
+  PARTO {
+    int parto_id PK
+    int gestacao_id FK, UK
+    date data_parto
+    string local_tipo
+    int unidade_id FK
+    string nome_maternidade
+    string tipo_parto
+    string motivo_cesarea
+    bool teve_acompanhante
+  }
+  CRIANCA {
+    int crianca_id PK
+    int gestacao_id FK
+    int unidade_referencia_id FK
+    string nome
+    string nome_mae
+    date data_nascimento
+    string sexo
+    string cpf UK
+    string cns UK
+    string tipo_sanguineo
+    string fator_rh
+    bool ativo
+    datetime criado_em
+  }
+  NASCIMENTO {
+    int crianca_id PK, FK
+    time hora_nascimento
+    bool pele_a_pele
+    bool mamou_primeira_hora
+    int apgar_1min
+    int apgar_5min
+    bool clampeamento_oportuno
+    int ig_semanas
+    int ig_dias
+    string ig_metodo
+    int peso_g
+    decimal comprimento_cm
+    decimal pc_cm
+    bool reanimacao
+    string assistido_por_nome
+    string coombs_direto
+    bool profilaxia_oftalmica
+    bool vitamina_k
+  }
+  INTERNACAO_NEONATAL {
+    int internacao_id PK
+    int crianca_id FK, UK
+    date data_entrada
+    date data_saida
+    string motivo
+  }
+  INTERNACAO_SETOR {
+    int internacao_id PK, FK
+    int setor_id PK, FK
+    int dias
+  }
+  ALTA_MATERNIDADE {
+    int alta_id PK
+    int crianca_id FK, UK
+    date data_alta
+    int peso_alta_g
+    decimal comprimento_alta_cm
+    string aleitamento
+    string resumo_alta
+  }
+  CRIANCA_VULNERABILIDADE {
+    int crianca_id PK, FK
+    int fator_id PK, FK
+  }
+  FATOR_VULNERABILIDADE {
+    int fator_id PK
+    string nome
+    string descricao
+  }
+  PRONTUARIO {
+    int prontuario_id PK
+    int crianca_id FK, UK
+    date data_abertura
+    string observacoes
+  }
+  UNIDADE_SAUDE {
+    int unidade_id PK
+    string cnes UK
+    string nome
+    string tipo
+    string endereco
+    string telefone
+    bool ativo
+  }
+  GESTANTE_TELEFONE {
+    int telefone_id PK
+    int gestante_id FK
+    string numero
+    string tipo
+  }
+  AGRAVO {
+    int agravo_id PK
+    string nome
+  }
+  SETOR_INTERNACAO {
+    int setor_id PK
+    string nome
+  }
+  VACINA {
+    int vacina_id PK
+    string sigla UK
+    string nome
+  }

@@ -1,0 +1,104 @@
+%% DER conceitual principal — Caderneta Digital da Criança (proposta de redesenho)
+%% Só entidades centrais, só chaves. Detalhes nos DERs por módulo.
+erDiagram
+  GESTANTE ||--o{ GESTACAO : "tem"
+  GESTACAO ||--o| PARTO : "termina em"
+  GESTACAO ||--|{ CRIANCA : "gera"
+  CRIANCA ||--|| PRONTUARIO : "possui"
+  PRONTUARIO ||--o{ ATENDIMENTO : "reúne"
+  AGENDAMENTO |o--o| ATENDIMENTO : "origina"
+  CRIANCA ||--o{ AGENDAMENTO : "tem marcado"
+  ATENDIMENTO ||--o| CONSULTA_CLINICA : "pode ter"
+  CRIANCA ||--o{ TRIAGEM_NEONATAL : "faz"
+  CRIANCA ||--o{ APLICACAO_VACINA : "recebe"
+  IMUNOBIOLOGICO ||--o{ APLICACAO_VACINA : "é"
+  ATENDIMENTO |o--o{ TRIAGEM_NEONATAL : "pode registrar"
+  ATENDIMENTO |o--o{ APLICACAO_VACINA : "pode registrar"
+
+  UNIDADE_SAUDE ||--o{ CRIANCA : "é referência de"
+  UNIDADE_SAUDE ||--o{ ATENDIMENTO : "onde ocorreu"
+  PROFISSIONAL ||--o{ ATENDIMENTO : "quem registrou"
+  PROFISSIONAL ||--o{ PROFISSIONAL_UNIDADE : "é lotado"
+  UNIDADE_SAUDE ||--o{ PROFISSIONAL_UNIDADE : "tem equipe"
+
+  USUARIO ||--o{ USUARIO_UNIDADE_PERFIL : "atua como"
+  UNIDADE_SAUDE ||--o{ USUARIO_UNIDADE_PERFIL : "em"
+  PERFIL ||--o{ USUARIO_UNIDADE_PERFIL : "define"
+  PERFIL ||--o{ PERFIL_PERMISSAO : "concede"
+  PERMISSAO ||--o{ PERFIL_PERMISSAO : "é concedida"
+  USUARIO |o--o| PROFISSIONAL : "pode ser"
+
+  GESTANTE {
+    int gestante_id PK
+  }
+  GESTACAO {
+    int gestacao_id PK
+    int gestante_id FK
+  }
+  PARTO {
+    int parto_id PK
+    int gestacao_id FK, UK
+  }
+  CRIANCA {
+    int crianca_id PK
+    int gestacao_id FK
+    int unidade_referencia_id FK
+  }
+  PRONTUARIO {
+    int prontuario_id PK
+    int crianca_id FK, UK
+  }
+  AGENDAMENTO {
+    int agendamento_id PK
+    int crianca_id FK
+  }
+  ATENDIMENTO {
+    int atendimento_id PK
+    int prontuario_id FK
+    int unidade_id FK
+    int profissional_id FK
+    int agendamento_id FK, UK
+  }
+  CONSULTA_CLINICA {
+    int atendimento_id PK, FK
+  }
+  TRIAGEM_NEONATAL {
+    int triagem_id PK
+    int crianca_id FK
+  }
+  APLICACAO_VACINA {
+    int aplicacao_id PK
+    int crianca_id FK
+    int imunobiologico_id FK
+  }
+  IMUNOBIOLOGICO {
+    int imunobiologico_id PK
+  }
+  UNIDADE_SAUDE {
+    int unidade_id PK
+  }
+  PROFISSIONAL {
+    int profissional_id PK
+  }
+  PROFISSIONAL_UNIDADE {
+    int profissional_id PK, FK
+    int unidade_id PK, FK
+  }
+  USUARIO {
+    int usuario_id PK
+  }
+  USUARIO_UNIDADE_PERFIL {
+    int usuario_id FK
+    int unidade_id FK
+    int perfil_id FK
+  }
+  PERFIL {
+    int perfil_id PK
+  }
+  PERMISSAO {
+    int permissao_id PK
+  }
+  PERFIL_PERMISSAO {
+    int perfil_id PK, FK
+    int permissao_id PK, FK
+  }

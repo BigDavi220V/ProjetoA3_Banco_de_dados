@@ -1,0 +1,194 @@
+%% DER conceitual principal (versão enxuta) — Caderneta Digital da Criança
+%% Entidades centrais com os principais atributos. Detalhes completos nos DERs por módulo.
+erDiagram
+  GESTANTE ||--o{ GESTACAO : "tem"
+  GESTACAO ||--o| PARTO : "termina em"
+  GESTACAO ||--|{ CRIANCA : "gera"
+  CRIANCA ||--|| PRONTUARIO : "possui"
+  CRIANCA ||--o{ AGENDAMENTO : "tem marcado"
+  AGENDAMENTO |o--o| CONSULTA : "vira"
+  CRIANCA ||--o{ CONSULTA : "recebe"
+  CRIANCA ||--o{ TRIAGEM_NEONATAL : "faz"
+  CRIANCA ||--o{ VACINA_APLICADA : "recebe"
+  VACINA ||--o{ VACINA_APLICADA : "é"
+  VACINA ||--o{ CALENDARIO_VACINAL : "tem doses"
+  UNIDADE_SAUDE ||--o{ CRIANCA : "é referência de"
+  UNIDADE_SAUDE ||--o{ PROFISSIONAL : "lota"
+  PROFISSIONAL ||--o{ CONSULTA : "realiza"
+  UNIDADE_SAUDE ||--o{ USUARIO : "atua em"
+  PERFIL ||--o{ USUARIO : "define"
+  PERFIL }o--o{ PERMISSAO : "concede"
+  PROFISSIONAL |o--o| USUARIO : "pode ser"
+
+  GESTANTE {
+    int gestante_id PK
+    string nome
+    string cpf UK
+    string cns UK
+    date data_nascimento
+    string tipo_sanguineo
+    string fator_rh
+    string endereco
+    bool ativo
+  }
+  GESTACAO {
+    int gestacao_id PK
+    int gestante_id FK
+    date dum
+    bool planejada
+    bool fez_prenatal
+    int numero_consultas
+    int trimestre_inicio
+    string tipo_gravidez
+    bool gravidez_risco
+    string risco_descricao
+    string coombs_indireto
+  }
+  PARTO {
+    int parto_id PK
+    int gestacao_id FK, UK
+    date data_parto
+    string local_tipo
+    int unidade_id FK
+    string nome_maternidade
+    string tipo_parto
+    string motivo_cesarea
+    bool teve_acompanhante
+  }
+  CRIANCA {
+    int crianca_id PK
+    int gestacao_id FK
+    int unidade_referencia_id FK
+    string nome
+    string nome_mae
+    date data_nascimento
+    string sexo
+    string cpf UK
+    string cns UK
+    string tipo_sanguineo
+    string fator_rh
+    bool ativo
+    datetime criado_em
+  }
+  PRONTUARIO {
+    int prontuario_id PK
+    int crianca_id FK, UK
+    date data_abertura
+    string observacoes
+  }
+  AGENDAMENTO {
+    int agendamento_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int especialidade_id FK
+    int unidade_id FK
+    int reagendado_de_id FK
+    datetime data_hora
+    int duracao_min
+    string tipo_atendimento
+    string local_atendimento
+    string status
+    datetime chegada_em
+    string motivo_cancelamento
+    string observacao
+  }
+  CONSULTA {
+    int consulta_id PK
+    int crianca_id FK
+    int profissional_id FK
+    int unidade_id FK
+    int agendamento_id FK, UK
+    datetime data_hora
+    string tipo_atendimento
+    int peso_g
+    decimal comprimento_cm
+    decimal pc_cm
+    string aleitamento
+    string desenvolvimento_afeto
+    string conduta
+    string observacoes
+  }
+  TRIAGEM_NEONATAL {
+    int triagem_id PK
+    int crianca_id FK
+    int tipo_triagem_id FK
+    bool realizada
+    date data_realizacao
+    string metodo
+    string resultado
+    date data_reteste
+    string conduta
+  }
+  VACINA_APLICADA {
+    int vacina_aplicada_id PK
+    int crianca_id FK
+    int vacina_id FK
+    int unidade_id FK
+    int profissional_id FK
+    int consulta_id FK
+    string dose
+    string origem
+    date data_aplicacao
+    string lote
+    string fabricante
+    string local_aplicacao
+  }
+  VACINA {
+    int vacina_id PK
+    string sigla UK
+    string nome
+    string publico_alvo
+    bool ativa
+  }
+  CALENDARIO_VACINAL {
+    int calendario_id PK
+    int vacina_id FK
+    string dose
+    int idade_minima_dias
+    int idade_ideal_dias
+    int idade_maxima_dias
+    int intervalo_dose_anterior_dias
+  }
+  UNIDADE_SAUDE {
+    int unidade_id PK
+    string cnes UK
+    string nome
+    string tipo
+    string endereco
+    string telefone
+    bool ativo
+  }
+  PROFISSIONAL {
+    int profissional_id PK
+    int unidade_id FK
+    int especialidade_id FK
+    string nome
+    string cpf UK
+    string conselho
+    string registro_conselho
+    string cbo
+    bool ativo
+  }
+  USUARIO {
+    int usuario_id PK
+    int perfil_id FK
+    int unidade_id FK
+    int profissional_id FK, UK
+    string nome
+    string login UK
+    string senha_hash
+    bool ativo
+    datetime ultimo_acesso
+  }
+  PERFIL {
+    int perfil_id PK
+    string codigo UK
+    string nome
+    string descricao
+  }
+  PERMISSAO {
+    int permissao_id PK
+    string codigo UK
+    string modulo
+    string descricao
+  }
