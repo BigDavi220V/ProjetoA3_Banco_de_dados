@@ -14,3 +14,5 @@
 Estes arquivos são a base do **Relatório Técnico (.pdf)** exigido no edital (Pilar 1).
 
 > PDF do relatório técnico: [Relatorio_Tecnico_A3_CadernetaDigital.pdf](Relatorio_Tecnico_A3_CadernetaDigital.pdf). Para regerar: `python docs/relatorio/montar.py` e `node docs/relatorio/gerar.js` (precisa do Playwright).
+
+Consulte também o [guia de entrega e ensaio](09-entrega-e-ensaio.md), que reúne o estado verificado, os cuidados com os dados e o que falta validar.
