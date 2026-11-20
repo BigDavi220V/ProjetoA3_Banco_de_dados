@@ -6,14 +6,15 @@
      reenvia sozinho quando a conexão voltar (conectividade instável)
    - menu lateral por perfil, toasts, modais e componentes de formulário
    ========================================================================== */
-const API = '/api';
+const BASE = new URL('../', document.baseURI).pathname.replace(/\/$/, '');
+const API = `${BASE}/api`;
 
 /* ------------------------------- Sessão ------------------------------- */
 const Sessao = {
   get token() { return lerLocal('cd_token'); },
   get usuario() { try { return JSON.parse(lerLocal('cd_usuario')); } catch { return null; } },
   salvar(token, usuario) { gravarLocal('cd_token', token); gravarLocal('cd_usuario', JSON.stringify(usuario)); },
-  sair() { removerLocal('cd_token'); removerLocal('cd_usuario'); location.href = '/pages/login.html'; },
+  sair() { removerLocal('cd_token'); removerLocal('cd_usuario'); location.href = `${BASE}/pages/login.html`; },
   pode(permissao) { return (this.usuario?.permissoes || []).includes(permissao); },
 };
 
@@ -328,7 +329,7 @@ const MENU = [
 
 /** Monta menu lateral + topo móvel. Chame no início de cada tela protegida. */
 function montarLayout(paginaAtual) {
-  if (!Sessao.token) { location.href = '/pages/login.html'; return false; }
+  if (!Sessao.token) { location.href = `${BASE}/pages/login.html`; return false; }
   const u = Sessao.usuario || {};
   const app = $('.app');
   const aside = document.createElement('aside');

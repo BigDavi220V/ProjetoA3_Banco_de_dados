@@ -53,7 +53,7 @@ if (require.main === module) {
       await getPool();
     } catch (err) {
       console.error(`[DB] Não conectou ao SQL Server: ${err.message}`);
-      console.error('[DB] Confira se a VM está ligada e os dados DB_* do arquivo .env.');
+      console.error('[DB] Confira se o SQL Server está em execução e os dados DB_* do arquivo .env.');
     }
   });
 }
