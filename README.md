@@ -23,7 +23,7 @@ O SQL Server pode estar em uma VM ou em uma instalação local já configurada. 
 
 Acesse `/api/health` para verificar a conexão da API com o banco. `npm run check` carrega os módulos e lista as rotas sem acessar o banco; `node --test` executa os testes disponíveis. Esses testes não substituem a validação completa dos fluxos com SQL Server.
 
-**Dados existentes:** não use `npm run db:reset` se precisar preservá-los. O `db:setup` prepara uma instalação; confira a configuração e os scripts antes de usá-lo em um banco existente. Nunca compartilhe o arquivo `backend/.env` ou credenciais reais.
+**Dados existentes:** não use `npm run db:reset` se precisar preservá-los. O `db:setup` também remove e recria tabelas; use-o somente em uma base descartável ou nova, após conferir a configuração e os scripts. Nunca compartilhe o arquivo `backend/.env` ou credenciais reais.
 
 Usuários de teste (senha `caderneta123`): `recepcao@`, `enfermeira@`, `tecnica@`, `medico@`, `gestor@caderneta.local`.
 
