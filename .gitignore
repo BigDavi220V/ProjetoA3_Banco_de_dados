@@ -5,3 +5,4 @@ node_modules/
 Thumbs.db
 ConexaoLocal.txt
 .playwright-cli/
+.env.isolado

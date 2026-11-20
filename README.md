@@ -51,3 +51,40 @@ Comece pela [documentação](docs/README.md).
 | Instruções de execução | `docs/06-guia-vm-sqlserver-dbeaver.md` |
 
 > Dados fictícios. Protótipo acadêmico, sem integração oficial com o SUS.
+
+## Ambiente em containers para demonstração
+
+O arquivo `compose.isolado.yml` define uma rede Docker interna, um SQL Server em volume próprio e uma aplicação sem diretórios da máquina montados, executada como usuário não privilegiado, com sistema de arquivos somente leitura. Não usa o SQL Server instalado no computador. O Docker compartilha o kernel do computador: não é uma barreira equivalente a uma VM, e a rede interna não garante proteção absoluta contra acesso ao host. Não use dados reais nem trate este protótipo como ambiente de produção.
+
+Requisitos: Docker com Compose, acesso à internet para baixar imagens e dependências, e memória suficiente para SQL Server. Na raiz do projeto, crie `.env.isolado` (não versionado) com uma senha forte para `MSSQL_SA_PASSWORD` e um valor aleatório para `JWT_SECRET`, por exemplo:
+
+```bash
+umask 077
+set -C  # impede sobrescrever um arquivo existente
+printf 'MSSQL_SA_PASSWORD=Aa1!%s\nJWT_SECRET=%s\n' "$(openssl rand -hex 24)" "$(openssl rand -hex 32)" > .env.isolado
+set +C
+```
+
+Guarde esse arquivo: a senha do SQL Server é definida na primeira criação do volume. Em seguida:
+
+```bash
+docker compose --env-file .env.isolado -f compose.isolado.yml up -d --build
+```
+
+**Somente na primeira instalação, com volume vazio**, carregue o banco de demonstração depois que o SQL Server tiver inicializado:
+
+```bash
+set -a; . ./.env.isolado; set +a
+DB_ADMIN_PASSWORD="$MSSQL_SA_PASSWORD" docker compose --env-file .env.isolado -f compose.isolado.yml run --rm -e DB_ADMIN_USER=sa -e DB_ADMIN_PASSWORD app npm run db:setup
+unset DB_ADMIN_PASSWORD MSSQL_SA_PASSWORD JWT_SECRET
+```
+
+**Atenção:** o setup remove e recria tabelas; não o repita em um volume que contenha dados a preservar. `docker compose --env-file .env.isolado -f compose.isolado.yml down` para os containers e mantém o volume. A opção `-v` também apaga os dados do volume.
+
+O Compose solicita publicação em `127.0.0.1:3003`, mas isso depende da configuração do Docker. Neste computador, a publicação na rede interna não ficou disponível; dentro do container, a saúde foi verificada com:
+
+```bash
+docker compose --env-file .env.isolado -f compose.isolado.yml exec -T app node -e "fetch('http://127.0.0.1:3000/api/health').then(async r => console.log(r.status, await r.text()))"
+```
+
+As senhas de usuários da aplicação e os dados de exemplo são públicos e exclusivos para demonstração. A API e o banco não foram configurados para dados reais ou exposição pública.
