@@ -1,6 +1,6 @@
 # 8. Roteiro da apresentação (15–20 min)
 
-Segue a "Ordem da Demonstração" do edital (seção 5). Antes de começar, confira se o ambiente de demonstração já está preparado, inicie a aplicação e verifique `/api/health`. Não execute `npm run db:reset` ou `npm run db:setup` em um banco com dados que precisem ser preservados: os scripts recriam tabelas. Ensaie o fluxo previamente em uma base descartável.
+Segue a "Ordem da Demonstração" do edital (seção 5). Antes de começar: `npm run db:reset` e `npm start`.
 
 ## 1. Regra de negócio e DER (4 min)
 - Contexto: Caderneta da Criança em papel → digital, foco em ergonomia e internet instável ([05](05-requisitos-e-regras-de-negocio.md)).

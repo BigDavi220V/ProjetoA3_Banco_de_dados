@@ -8,7 +8,7 @@ async function buscar(busca) {
     SELECT TOP (20)
            g.gestante_id, g.nome, g.cpf, g.cns, g.data_nascimento, g.bairro,
            DATEDIFF(YEAR, g.data_nascimento, GETDATE()) AS idade_aprox,
-           (SELECT STRING_AGG(CONCAT(N'(', t.ddd, N') ', t.numero), N' · ')
+           (SELECT STRING_AGG(CONCAT('(', t.ddd, ') ', t.numero), N' · ')
               FROM cadastro.gestante_telefone t WHERE t.gestante_id = g.gestante_id) AS telefones,
            (SELECT COUNT(*) FROM cadastro.crianca c
               JOIN clinico.gestacao gs ON gs.gestacao_id = c.gestacao_id

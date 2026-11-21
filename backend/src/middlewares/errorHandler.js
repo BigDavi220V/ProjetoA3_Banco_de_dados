@@ -65,7 +65,7 @@ function errorHandler(err, req, res, next) {
   }
   if (err.code === 'ESOCKET' || err.code === 'ELOGIN' || err.code === 'ETIMEOUT') {
     console.error('[DB]', err.message);
-    return res.status(503).json({ erro: 'Banco de dados indisponível. Verifique se o SQL Server está em execução e configurado.' });
+    return res.status(503).json({ erro: 'Banco de dados indisponível. Verifique se a VM do SQL Server está ligada.' });
   }
   console.error('[Erro]', err);
   return res.status(500).json({ erro: 'Erro interno no servidor.' });
